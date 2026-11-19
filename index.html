@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>서울청년센터 성북 탐험</title>
+<title>서울청년센터 성북 탐방</title>
 <link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
 <style>
   html,body{margin:0;height:100%;overflow:hidden;background:#bfe6f5;font-family:'Jua',sans-serif;touch-action:none;-webkit-user-select:none;user-select:none}
@@ -138,7 +138,7 @@
 <body>
 <div id="app"></div>
 <div id="labels"></div>
-<div id="title" class="card"><b>서울청년센터 성북</b><span id="floorName">1층 · 시안 v9</span></div>
+<div id="title" class="card"><b>서울청년센터 성북</b><span id="floorName">1층 · v51</span></div>
 <div id="btns">
   <button id="bShot">📷 사진</button>
   <button id="bEnv">🌤 계절·시간</button>
@@ -318,7 +318,7 @@ function floorPoly(pts, color, y = 0.004) {
 function plane(w, h, material, x, y, z, rotY = 0) {
   if (Math.abs(Math.sin(rotY)) < 1e-6) { if (w >= 1.5) [x, w] = spanX(x, w); else x = X(x); z = Z(z); }
   else { x = X(x); if (w >= 1.5) [z, w] = spanZ(z, w); else z = Z(z); }
-  const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), material);
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), material); m.receiveShadow = true;   // 벽에 붙은 표지판도 벽처럼 그림자를 받아요
   m.position.set(x, y, z); m.rotation.y = rotY; ROOT.add(m); return m;
 }
 
@@ -381,9 +381,17 @@ function solidWall(x1, z1, x2, z2, o = {}) {
   const g = newGroup(), m = gmat(g, color), glass = gmat(g, '#bfe3f2', { transparent: true, opacity: 0.38, roughness: 0.1, depthWrite: false });
   const L = Math.hypot(x2 - x1, z2 - z1), ux = (x2 - x1) / L, uz = (z2 - z1) / L;
   const P = s => [x1 + ux * s, z1 + uz * s];
+  // 벽 끝이 다른 벽과 같은 면에 딱 겹치면 화면이 지글거려요(외벽 벽돌 면에 줄무늬처럼 보임).
+  //  · 건물 둘레 벽: 모서리에서 아주 살짝(1.2cm) 더 나가게 → 옆 벽과 같은 면이 안 생김
+  //  · 안쪽 벽이 둘레 벽에 닿는 끝: 둘레 벽 속에서 멈추게 → 바깥 벽돌 면까지 나오지 않음
+  const onPer = (px, pz) => Math.abs(px) < 0.06 || Math.abs(px - 12.6) < 0.06 || Math.abs(pz) < 0.06 || Math.abs(pz - 16.8) < 0.06;
+  const perim = (Math.abs(x1 - x2) < 0.06 && onPer(x1, 1)) || (Math.abs(z1 - z2) < 0.06 && onPer(1, z1));
   intervals(L, [...doors, ...windows.map(w => [w[0], w[1]])]).forEach(([a, b]) => {
-    const [ax, az] = P(a), [bx, bz] = P(b);
-    piece(g, ax, az, bx, bz, 0, h, t, m, t); _seg(ax, az, bx, bz, t / 2);
+    let ea = t / 2, eb = t / 2;
+    if (perim) { ea = eb = t / 2 + 0.012; }
+    else { if (a < 0.01 && onPer(x1, z1)) ea = 0.05; if (b > L - 0.01 && onPer(x2, z2)) eb = 0.05; }
+    const [ax, az] = P(a - ea), [bx, bz] = P(b + eb);
+    piece(g, ax, az, bx, bz, 0, h, t, m); const [cx, cz] = P(a), [dx, dz] = P(b); _seg(cx, cz, dx, dz, t / 2);
   });
   doors.forEach(([a, b]) => { const [ax, az] = P(a), [bx, bz] = P(b); piece(g, ax, az, bx, bz, 2.25, h, t, m); });
   let winFrame = null, winSill = null;
@@ -493,8 +501,8 @@ function buildElevator() {
   piece(g, 0.18, a + 0.35, 0.18, b - 0.35, 2.05, 2.25, 0.02, glow);   // 조명
   box(2.1, 0.025, 2.1, '#bdb6aa', 1.2, 0, (EZ0 + EZ1) / 2, { r: 0 });                // 바닥
   box(1.7, 0.03, 1.7, '#d3cdc2', 1.2, 0, (EZ0 + EZ1) / 2, { r: 0 });
-  box(0.03, 0.42, 0.12, '#b9bec4', 2.54, 0.85, z1 + 0.35, { r: 0.01 });             // 호출 버튼
-  [0.98, 1.1].forEach(y => cyl(0.022, 0.022, 0.01, '#8d9298', 2.56, y, z1 + 0.35));
+  box(0.03, 0.42, 0.12, '#b9bec4', 2.54, 0.85, z0 - 0.35, { r: 0.01 });             // 호출 버튼 (문 북쪽)
+  [0.98, 1.1].forEach(y => cyl(0.022, 0.022, 0.01, '#8d9298', 2.56, y, z0 - 0.35));
   RAW = pr; RAWZ = pz;
 }
 // 층 안내판 (here = 지금 층 번호, 0부터)
@@ -667,7 +675,7 @@ function drawMediaWall() {
   g.globalAlpha = 1; screenTex.needsUpdate = true;
 }
 function updateMediaWall(dt) {   // 평소엔 모집 프로그램 슬라이드, 가까이 가면 환영 문구가 올라옴
-  const p = player.position, near = curFloor === 0 && !elev && Math.hypot(p.x - 1.6, p.z - 3.6) < 3.0;
+  const near = false;   // 가까이 가도 환영 문구 없이 홍보 슬라이드만 계속 (5초마다 다음 프로그램)
   if (near && !MW.wasNear) { MW.active = true; MW.wp = 0; MW.hold = 0; }
   MW.wasNear = near;
   if (MW.active) {
@@ -854,7 +862,6 @@ RAW = false; RAWZ = false;
 // 안내 데스크 (입구 쪽 끝까지)
 box(0.7, 1.0, 3.95, '#f6f3ec', 8.7, 0, 7.625, { collide: true, r: 0.04 });
 box(0.82, 0.05, 4.07, '#e6d2a8', 8.7, 1.0, 7.625, { r: 0.02 });
-[6.2, 6.9, 7.6, 8.4, 9.1].forEach((z, i) => box(0.16, 0.24, 0.13, PASTELS[i + 1], 8.55, 1.05, z, { r: 0.01 }));
 // 개수대 (사선 벽 안쪽) + 텀블러 세척기
 {
   RAW = true;   // 줄어든 사선 벽에 맞춰 다시 계산
@@ -874,7 +881,7 @@ box(0.82, 0.05, 4.07, '#e6d2a8', 8.7, 1.0, 7.625, { r: 0.02 });
 // 입구 쪽 테이블 + 화분
 roundTable(14.2, 3.6, 0.5);
 [[14.75, 2.75], [13.6, 4.35]].forEach(([x, z]) => { const g = grp(x, z); addSeat(g, 0.47, 0, [14.2, 3.6]); cyl(0.2, 0.2, 0.05, '#e6c48f', 0, 0.42, 0, { parent: g }); cyl(0.03, 0.03, 0.42, '#a68a6a', 0, 0, 0, { parent: g }); addCircle(x, z, 0.24); });
-plantPot(15.45, 5.4, 1.2); RAW = true; RAWZ = true; plantPot(12.1, 8.9, 1.0); RAW = false; RAWZ = false; plantPot(7.55, 13.75, 1.1);
+
 
 /* ---------- 사물함 (사무실 옆) ---------- */
 RAW = true; RAWZ = true;   // 줄어든 세로에 맞춰 직접 배치
@@ -925,6 +932,7 @@ RAW = false;
 
 /* ---------- 엘리베이터 문 ---------- */
 buildElevator();
+directory(0, 2.54, 14.75);   // 층별 안내판 (1층에만)
 makeDoor(10.9, 0, 12.35, 0, { swing: -1, frame: '#5d6672' });   // 입구 바깥문
 makeDoor(9, 1.8, 9, 3.2, { swing: -1, frame: '#5d6672' });      // 입구 → 홀 문
 
@@ -973,7 +981,7 @@ function wcDoor(z, text, color, door = '#8b4a2b') {
 }
 wcDoor(7.45, '남자 화장실', '#6fa8dc'); wcDoor(9.9, '여자 화장실', '#f08fa8');
 RAWZ = true; [[4.95, 1.6], [5.36, 1.35], [5.77, 1.65], [6.18, 1.35]].forEach(([z, y]) => poster(3.74, y, z, Math.PI / 2, 0.4, 0.58)); RAWZ = false;
-plantPot(4.0, 8.15, 1.3);
+plantPot(4.0, 8.675, 1.3);   // 남자·여자 화장실 문 사이
 { // 담요 선반 카트
   const g = grp(4.0, 5.8, Math.PI / 2);
   [0.08, 0.42, 0.76].forEach((y, i) => { box(0.75, 0.03, 0.4, '#cfd3d8', 0, y, 0, { parent: g, r: 0 }); box(0.6, 0.12, 0.3, ['#9aa0a6', '#c9b8a3', '#a8b8c8'][i], 0, y + 0.03, 0, { parent: g, r: 0.03 }); });
@@ -983,7 +991,6 @@ plantPot(4.0, 8.15, 1.3);
 ZOFF = 0;
 buildElevator();
 // 엘리베이터 ↔ 여자 화장실 사이 (조금 줄임)
-directory(1, 2.54, 14.75);                                                                           // 층별 안내판
 RAWZ = true;
 {
   [[12.5, 1.75], [12.05, 1.55], [11.6, 1.8], [11.6, 1.15], [11.15, 1.6], [10.7, 1.75], [10.25, 1.55]].forEach(([z, y]) => poster(3.74, y, 12.1 + (z - 10.25) * 0.91, Math.PI / 2, 0.42, 0.58));
@@ -1149,10 +1156,6 @@ solidWall(5.6, 0, 5.6, 4.8, { color: '#f3f1ec' });
 solidWall(0, 4.8, 5.6, 4.8, { color: '#f3f1ec', doors: [[4.05, 5.05]] });
 floorPoly([[0, 0], [5.6, 0], [5.6, 4.8], [0, 4.8]], '#cfcac0');   // 테라조 느낌 회색 바닥
 { // 종합상담실 안 (사진 참고): 합판 격자 책장 · 분홍 펠트 벽 · 타원 테이블 · 검정 가죽 팔걸이 의자 4개
-  // 남쪽 벽: 분홍빛 펠트 패널
-  box(3.95, 2.7, 0.02, '#e7d0c4', 2.03, 0.02, 4.71, { r: 0 });
-  [1.35, 2.7].forEach(x => box(0.012, 2.7, 0.025, '#d6bdb0', x, 0.02, 4.705, { r: 0 }));
-  box(3.95, 0.012, 0.025, '#d6bdb0', 2.03, 1.36, 4.705, { r: 0 });
   // 창가 콘크리트 기둥
   box(0.42, H, 0.3, '#b9b6b0', 0.21, 0, 0.15, { r: 0 });
   // 서쪽 벽: 합판 격자 책장 (가운데 두 칸 줄에만 책 · 작은 화분)
@@ -1239,7 +1242,7 @@ RAWZ = false;
 const signMat = draw => new THREE.MeshStandardMaterial({ map: canvasTex(1024, 720, draw), roughness: 0.9 });
 const pictoStroke = g => { g.strokeStyle = '#2f3338'; g.lineWidth = 12; g.lineCap = 'round'; g.lineJoin = 'round'; };
 RAWZ = true; plane(2.6, 2.1, signMat((g, w, h) => {
-  g.fillStyle = '#f6f4ef'; g.fillRect(0, 0, w, h); g.fillStyle = '#2f3338';
+  g.fillStyle = '#f3f1ec'; g.fillRect(0, 0, w, h); g.fillStyle = '#2f3338';
   g.font = '58px Jua, sans-serif'; g.textAlign = 'left'; g.fillText('화상면접실 2', 40, 110);
   g.font = '30px Jua, sans-serif'; g.fillText('Video Interview Room 2', 40, 155);
   g.font = '58px Jua, sans-serif'; g.textAlign = 'right'; g.fillText('화상면접실 1', w - 40, 110);
@@ -1250,7 +1253,7 @@ RAWZ = true; plane(2.6, 2.1, signMat((g, w, h) => {
   g.beginPath(); g.arc(760, 560, 42, 0, 7); g.stroke(); g.beginPath(); g.moveTo(700, 700); g.quadraticCurveTo(760, 600, 820, 700); g.stroke();
 }), 7.565, 1.3, IM, -Math.PI / 2); RAWZ = false;
 plane(1.6, 1.12, signMat((g, w, h) => {
-  g.fillStyle = '#f6f4ef'; g.fillRect(0, 0, w, h); g.fillStyle = '#2f3338';
+  g.fillStyle = '#f3f1ec'; g.fillRect(0, 0, w, h); g.fillStyle = '#2f3338';
   g.font = '80px Jua, sans-serif'; g.textAlign = 'right'; g.fillText('종합상담실', w - 60, 140);
   g.font = '38px Jua, sans-serif'; g.fillText('Comprehensive Counseling Room', w - 60, 200);
   pictoStroke(g); g.beginPath(); g.arc(300, 470, 38, 0, 7); g.stroke(); g.beginPath(); g.moveTo(250, 700); g.lineTo(250, 580); g.quadraticCurveTo(300, 530, 350, 580); g.lineTo(350, 700); g.stroke();
@@ -1270,8 +1273,7 @@ function accDoor(z, title, en, woman) {
     g.font = '64px Jua, sans-serif'; g.textAlign = 'center'; g.fillText(title, w / 2, 150);
     g.font = '30px Jua, sans-serif'; g.fillText(en, w / 2, 200);
     pictoStroke(g); g.lineWidth = 14;
-    if (woman) { g.beginPath(); g.arc(300, 420, 40, 0, 7); g.stroke(); g.beginPath(); g.moveTo(240, 700); g.lineTo(270, 500); g.lineTo(330, 500); g.lineTo(360, 700); g.stroke(); }
-    const cx = woman ? 640 : 512;
+    const cx = 512;
     g.beginPath(); g.arc(cx, 400, 34, 0, 7); g.stroke(); g.beginPath(); g.moveTo(cx, 450); g.lineTo(cx, 560); g.lineTo(cx + 90, 560); g.lineTo(cx + 120, 660); g.stroke();
     g.beginPath(); g.arc(cx - 10, 610, 80, 0.3, 4.6); g.stroke();
   }), 3.79, 1.2, z, Math.PI / 2);
@@ -1347,24 +1349,27 @@ box(1.2, 0.2, 3.0, FLOOR4, 12.0, -0.2, 18.0, { r: 0 });
 const MZ = 9.3;   // 멀티룸 남쪽 벽
 
 // 바깥 벽: 북쪽·동쪽 통창, 서쪽 거울 벽
-glassWall(0, 0, 12.6, 0, { step: 1.05, frame: '#3a3f46' });
+const BD4 = 1.0;   // 발코니 깊이 (건물 안쪽으로 들어간 발코니 → 바깥 면은 건물과 나란히)
+glassWall(0, BD4, 12.6, BD4, { step: 1.05, frame: '#3a3f46' });
 RAWZ = true;
-glassWall(12.6, 0, 12.6, MZ, { step: 1.05, frame: '#3a3f46' });
-solidWall(12.6, MZ, 12.6, EZ1, { color: '#e7e2da', windows: [[4.7, 6.3, 1.0, 2.4]] });   // 계단 쪽 창문
+glassWall(12.6, BD4, 12.6, MZ, { step: 1.05, frame: '#3a3f46' });
+solidWall(12.6, MZ, 12.6, EZ1, { color: '#e7e2da' });
 solidWall(0, EZ1, 0, 0, { color: '#e7e2da' });
 RAWZ = false;
 solidWall(12.6, 19.5, 0, 19.5, { color: '#e7e2da', windows: [[7.3, 8.7, 1.25, 2.5]] });  // 엘리베이터 옆 창문 (모든 층)
 // 발코니 문 (나갈 수 없음): 통창 안에 짙은 미닫이 문틀
 [[0.9, 2.5], [9.6, 11.2]].forEach(([a, b]) => {
-  [a, (a + b) / 2, b].forEach(x => box(0.07, 2.3, 0.09, '#2f3338', x, 0, 0.0, { r: 0 }));
-  box(b - a + 0.07, 0.07, 0.09, '#2f3338', (a + b) / 2, 2.27, 0.0, { r: 0 });
-  box(0.03, 0.3, 0.05, '#c7ccd1', (a + b) / 2 - 0.08, 1.0, 0.07, { r: 0.01 });
+  [a, (a + b) / 2, b].forEach(x => box(0.07, 2.3, 0.09, '#2f3338', x, 0, BD4, { r: 0 }));
+  box(b - a + 0.07, 0.07, 0.09, '#2f3338', (a + b) / 2, 2.27, BD4, { r: 0 });
+  box(0.03, 0.3, 0.05, '#c7ccd1', (a + b) / 2 - 0.08, 1.0, BD4 + 0.07, { r: 0.01 });
 });
-// 발코니 (바깥, 나갈 수 없음)
-box(12.6, 0.14, 1.25, '#9a948b', 6.3, -0.14, -0.66, { r: 0 });
-box(12.6, 0.05, 0.06, '#2f3338', 6.3, 1.05, -1.25, { r: 0 });
-for (let x = 0.1; x < 12.6; x += 0.24) box(0.025, 1.05, 0.025, '#2f3338', x, 0, -1.25, { r: 0 });
-[0.02, 12.58].forEach(x => box(0.05, 0.05, 1.25, '#2f3338', x, 1.05, -0.63, { r: 0 }));
+// 발코니 (건물 안쪽, 나갈 수 없음): 바닥 + 건물 바깥 면에 난간
+floorPoly([[0, 0], [12.6, 0], [12.6, BD4], [0, BD4]], '#9a948b', 0.012);
+box(12.6, 0.05, 0.06, '#2f3338', 6.3, 1.05, 0.04, { r: 0 });
+for (let x = 0.1; x < 12.6; x += 0.24) box(0.025, 1.05, 0.025, '#2f3338', x, 0, 0.04, { r: 0 });
+box(0.05, 0.05, BD4, '#2f3338', 12.56, 1.05, BD4 / 2, { r: 0 });
+for (let z = 0.28; z < BD4; z += 0.24) box(0.025, 1.05, 0.025, '#2f3338', 12.56, 0, z, { r: 0 });
+_seg(0, 0.04, 12.6, 0.04, 0.05);
 
 // 서쪽 거울 (반짝이는 은색 판)
 {
@@ -1377,9 +1382,9 @@ for (let x = 0.1; x < 12.6; x += 0.24) box(0.025, 1.05, 0.025, '#2f3338', x, 0, 
   });
   RAWZ = true;
   const mm = new THREE.MeshStandardMaterial({ map: mt, metalness: 0.3, roughness: 0.12 });
-  const mirrorMesh = plane(6.7, 2.2, mm, 0.14, 1.2, 3.95, Math.PI / 2);
+  const mirrorMesh = plane(5.9, 2.2, mm, 0.14, 1.2, 4.35, Math.PI / 2);
   { const it = addInfo([mirrorMesh], '거울', '멀티룸 한쪽 벽을 채운 큰 거울이에요.\n거울 앞에서 소복이와 춤춰 볼까요?', X(0.9), Z(3.95)); it.r = 2.2; it.action = { label: '🪞 미니게임: 거울 댄스', fn: () => openDanceGame() }; }
-  box(0.04, 0.05, 6.74, '#b7bcc2', 0.15, 0.08, 3.95, { r: 0 }); box(0.04, 0.05, 6.74, '#b7bcc2', 0.15, 2.3, 3.95, { r: 0 });
+  box(0.04, 0.05, 5.94, '#b7bcc2', 0.15, 0.08, 4.35, { r: 0 }); box(0.04, 0.05, 5.94, '#b7bcc2', 0.15, 2.3, 4.35, { r: 0 });
   solidWall(0.3, 7.6, 0.3, MZ, { t: 0.6, color: '#f3f1ec' });            // 거울 옆 튀어나온 벽
   box(0.16, 0.16, 4.2, '#f2f1ee', 0.22, 2.42, 3.95, { r: 0.05 });        // 말려 있는 빔 스크린 (거울 위)
   box(0.02, 0.02, 4.0, '#6b7178', 0.31, 2.43, 3.95, { r: 0 });
@@ -1419,7 +1424,6 @@ box(0.08, 0.36, 0.2, '#c9ccd0', 3.76, 1.05, 13.45, { r: 0.02 });         // 소�
 ball(0.07, '#e03b3b', 3.82, 1.45, 13.45);
 RAWZ = false;
 buildElevator();
-directory(3, 2.54, 14.75);
 
 // 수납장 (복도 동쪽, 창고 앞) + 콘크리트 기둥
 RAWZ = true;
@@ -1462,8 +1466,8 @@ box(0.56, 1.6, 0.6, '#2b2d31', 0.88, 0, 8.4, { collide: true, r: 0.02 });       
 box(0.02, 1.4, 0.5, '#4a5560', 1.165, 0.12, 8.4, { r: 0 });
 [0.5, 0.75, 1.0, 1.25].forEach(y => box(0.02, 0.04, 0.4, '#7fd0a0', 1.17, y, 8.4, { r: 0 }));
 [[10.6, 8.85], [3.2, 8.85]].forEach(([x, z]) => { box(0.38, 0.72, 0.38, '#e9e6e0', x, 0, z, { collide: true, r: 0.04 }); box(0.3, 0.02, 0.3, '#cfcbc4', x, 0.72, z, { r: 0.01 }); });   // 공기청정기
-cyl(0.3, 0.3, H, '#d3cfc8', 12.05, 0, 0.6, { collide: 0.3 });                     // 모서리 둥근 기둥
-[[0.7, 0.3], [11.4, 0.3]].forEach(([x, z]) => box(0.3, 0.42, 0.24, '#26282c', x, 2.0, z, { r: 0.03 }));   // 스피커
+cyl(0.3, 0.3, H, '#d3cfc8', 12.05, 0, BD4 + 0.55, { collide: 0.3 });                     // 모서리 둥근 기둥
+[[0.7, BD4 + 0.3], [11.4, BD4 + 0.3]].forEach(([x, z]) => box(0.3, 0.42, 0.24, '#26282c', x, 2.0, z, { r: 0.03 }));   // 스피커
 RAWZ = false;
 
 // 4층 → 5층 계단 (아래층과 같은 모양)
@@ -1500,7 +1504,9 @@ const signTex = (lines, bg = '#f6f4ef', fg = '#2f3338', w = 512, h = 256) => can
 
 // 바깥 벽
 solidWall(0, 0, 0.9, 0, { color: '#cfcbc4' });
-glassWall(0.9, 0, 6.0, 0, { step: 1.05, frame: '#3a3f46' });   // 발코니 앞 창만 유리
+const BD5 = 1.0;   // 발코니 깊이 (건물 안쪽으로)
+glassWall(0.9, BD5, 6.0, BD5, { step: 1.05, frame: '#3a3f46' });   // 발코니 안쪽 통창
+solidWall(0.9, 0, 0.9, BD5, { color: '#cfcbc4' }); solidWall(6.0, 0, 6.0, BD5, { color: '#cfcbc4' });
 solidWall(6.0, 0, 12.6, 0, { color: '#cfcbc4' });
 RAWZ = true;
 solidWall(12.6, 0, 12.6, 3.6, { color: '#cfcbc4' });                                   // 동쪽 콘크리트 벽 (나눔냉장고)
@@ -1510,15 +1516,10 @@ solidWall(0, EZ1, 0, 0, { color: '#cfcbc4' });
 RAWZ = false;
 solidWall(12.6, 19.5, 0, 19.5, { color: '#e7e2da', windows: [[7.3, 8.7, 1.25, 2.5]] });  // 엘리베이터 옆 창문 (모든 층)
 // 발코니 미닫이 문틀 + 창 스티커 (나갈 수 없음)
-[[1.4, 3.6]].forEach(([a, b]) => {
-  [a, (a + b) / 2, b].forEach(x => box(0.07, 2.3, 0.09, '#2f3338', x, 0, 0.0, { r: 0 }));
-  box(b - a + 0.07, 0.07, 0.09, '#2f3338', (a + b) / 2, 2.27, 0.0, { r: 0 });
-});
-{ const B0 = 0.9, B1 = 6.0;   // 발코니 (브릿지룸 창 앞 일부만)
-  box(B1 - B0, 0.14, 1.25, '#9a948b', (B0 + B1) / 2, -0.14, -0.66, { r: 0 });
-  box(B1 - B0, 0.05, 0.06, '#2f3338', (B0 + B1) / 2, 1.05, -1.25, { r: 0 });
-  for (let x = B0 + 0.1; x < B1; x += 0.24) box(0.025, 1.05, 0.025, '#2f3338', x, 0, -1.25, { r: 0 });
-  [B0 + 0.02, B1 - 0.02].forEach(x => { box(0.05, 0.05, 1.25, '#2f3338', x, 1.05, -0.63, { r: 0 }); for (let z = -1.1; z < 0; z += 0.24) box(0.025, 1.05, 0.025, '#2f3338', x, 0, z, { r: 0 }); }); }
+{ const B0 = 0.9, B1 = 6.0;   // 발코니 (브릿지룸 창 앞 일부, 건물 안쪽)
+  floorPoly([[B0, 0], [B1, 0], [B1, BD5], [B0, BD5]], '#9a948b', 0.012);
+  box(B1 - B0, 0.05, 0.06, '#2f3338', (B0 + B1) / 2, 1.05, 0.04, { r: 0 });
+  for (let x = B0 + 0.1; x < B1; x += 0.24) box(0.025, 1.05, 0.025, '#2f3338', x, 0, 0.04, { r: 0 }); }
 
 RAWZ = true;
 floorPoly([[0, 0], [12.6, 0], [12.6, BZ], [0, BZ]], '#e8e1d4');
@@ -1541,7 +1542,6 @@ plane(0.42, 0.2, new THREE.MeshStandardMaterial({ map: signTex([['안심 화장�
 box(0.08, 0.36, 0.2, '#c9ccd0', 3.76, 1.05, 13.75, { r: 0.02 }); ball(0.07, '#e03b3b', 3.82, 1.45, 13.75);
 RAWZ = false;
 buildElevator();
-directory(4, 2.54, 14.75);
 
 // 탕비실 (들어갈 수 있음): 취식존 쪽 나무 문틀
 RAWZ = true;
@@ -1667,18 +1667,18 @@ function campChair(x, z, c) {
   [-0.29, 0.29].forEach(sx => { box(0.04, 0.03, 0.5, '#c7ccd1', sx, 0.62, 0.0, { parent: g, r: 0.01 }); box(0.025, 0.62, 0.025, '#9aa0a6', sx, 0, 0.2, { parent: g, r: 0 }); box(0.025, 0.62, 0.025, '#9aa0a6', sx, 0, -0.22, { parent: g, r: 0 }); });
   addCircle(x, z, 0.3);
 }
-beanbag(2.4, 1.25, '#9cbf5a'); beanbag(4.0, 1.25, '#e2853c');
-[[1.9, '#e0a93a'], [2.75, '#e0a93a'], [3.6, '#2c3a5e'], [4.45, '#2c3a5e']].forEach(([x, c]) => campChair(x, 2.95, c));
+beanbag(2.4, BD5 + 0.9, '#9cbf5a'); beanbag(4.0, BD5 + 0.9, '#e2853c');
+[[1.9, '#e0a93a'], [2.75, '#e0a93a'], [3.6, '#2c3a5e'], [4.45, '#2c3a5e']].forEach(([x, c]) => campChair(x, BD5 + 2.4, c));
 function sideTable(x, z) { cyl(0.25, 0.25, 0.03, '#f8f8f6', x, 0.5, z); [[-0.15, -0.15], [0.15, 0.15], [-0.15, 0.15], [0.15, -0.15]].forEach(([dx, dz]) => box(0.02, 0.5, 0.02, '#f8f8f6', x + dx, 0, z + dz, { r: 0 })); addCircle(x, z, 0.27); }
 sideTable(1.0, 1.4); sideTable(5.5, 1.3);
 // 아치형 칸막이 (브릿지룸 ↔ 취식존)
 for (let i = 0; i < 5; i++) {
-  const z = 0.55 + i * 0.72, x = 6.2 + (i % 2 ? 0.08 : -0.08), a = (i % 2 ? 0.25 : -0.25);
+  const z = BD5 + 0.5 + i * 0.72, x = 6.2 + (i % 2 ? 0.08 : -0.08), a = (i % 2 ? 0.25 : -0.25);
   box(0.04, 1.55, 0.68, '#f6f6f4', x, 0, z, { r: 0.01, rotY: a });
   const arch = new THREE.Mesh(new THREE.CylinderGeometry(0.34, 0.34, 0.04, 24, 1, false, 0, Math.PI), mat('#f6f6f4'));
   arch.rotation.y = a; arch.rotation.z = Math.PI / 2; arch.position.set(x, 1.55, z); arch.castShadow = true; F5.add(arch);
 }
-addSeg(6.2, 0.15, 6.2, 3.75, 0.1);
+addSeg(6.2, BD5 + 0.1, 6.2, BD5 + 3.7, 0.1);
 { // 취식존 이용 안내 세움 간판
   const g = grp(6.8, 4.6, -Math.PI / 4);
   box(0.62, 0.86, 0.03, '#2b2d31', 0, 0.75, 0, { parent: g, r: 0.01 });
@@ -1769,7 +1769,7 @@ function autumnTree(x, z, kind, s = 1, y0 = 0.45) {   // kind: 'maple' 단풍 / 
 }
 function leafBush(x, z, kind) { const c = kind === 'maple' ? ['#d9472b', '#ef7b2e'] : ['#f2c230', '#e8b52a']; ball(0.32, c[0], x, 0.7, z, ROOT, 0.75); ball(0.24, c[1], x + 0.2, 0.82, z + 0.1, ROOT, 0.75); }
 autumnTree(6.9, 8.5, 'ginkgo'); autumnTree(9.3, 8.5, 'maple', 1.1); conifer(10.4, 8.5, 2.1);
-leafBush(5.6, 8.45, 'maple'); leafBush(8.2, 8.45, 'ginkgo');
+leafBush(4.6, 8.45, 'maple'); leafBush(8.2, 8.45, 'ginkgo');
 autumnTree(4.45, 12.0, 'maple'); leafBush(4.5, 10.4, 'ginkgo');
 autumnTree(11.9, 8.65, 'ginkgo', 1.0, 0.5);   // 북동쪽 벽돌 상자에 심은 은행나무
 { // 떨어진 낙엽 (데크·화단 위)
@@ -1809,7 +1809,7 @@ autumnTree(11.9, 8.65, 'ginkgo', 1.0, 0.5);   // 북동쪽 벽돌 상자에 심�
   TUFTS.forEach(([x, z]) => tuft(x, z, ['#5f9e4f', '#6fae5a', '#4f8f45'], 1.15));
   roundTree(6.9, 8.5, GREEN); roundTree(9.3, 8.5, GREEN, 1.1); pine(10.4, 8.5, 2.2, '#3f7a45', '#4a8a50');
   roundTree(4.45, 12.0, GREEN); roundTree(11.9, 8.65, GREEN, 1.0, 0.5);
-  [[5.6, 8.45, '#8fa8f0'], [8.2, 8.45, '#b79cf0'], [4.5, 10.4, '#8fc0f0']].forEach(([x, z, c]) => { ball(0.3, '#5f9e4f', x, 0.62, z, ROOT, 0.7); [[0, 0], [0.15, 0.1], [-0.14, -0.08]].forEach(([dx, dz]) => ball(0.13, c, x + dx, 0.82, z + dz)); });
+  [[4.6, 8.45, '#8fa8f0'], [8.2, 8.45, '#b79cf0'], [4.5, 10.4, '#8fc0f0']].forEach(([x, z, c]) => { ball(0.3, '#5f9e4f', x, 0.62, z, ROOT, 0.7); [[0, 0], [0.15, 0.1], [-0.14, -0.08]].forEach(([dx, dz]) => ball(0.13, c, x + dx, 0.82, z + dz)); });
   // 겨울: 앙상한 나무 + 눈 덮인 소나무 + 화단·데크에 눈
   ROOT = SEAS.winter;
   TUFTS.forEach(([x, z]) => tuft(x, z, ['#b8a58a', '#a8977c'], 0.5));
@@ -2476,7 +2476,7 @@ document.getElementById('bShot').onclick = () => {
   renderer.render(scene, camera);
   const src = renderer.domElement, c = document.createElement('canvas'); c.width = src.width; c.height = src.height;
   const g = c.getContext('2d'); g.drawImage(src, 0, 0);
-  const s = Math.max(1, c.width / 900), d = new Date(), txt = '서울청년센터 성북 탐험 · ' + d.getFullYear() + '.' + String(d.getMonth() + 1).padStart(2, '0') + '.' + String(d.getDate()).padStart(2, '0');
+  const s = Math.max(1, c.width / 900), d = new Date(), txt = '서울청년센터 성북 탐방 · ' + d.getFullYear() + '.' + String(d.getMonth() + 1).padStart(2, '0') + '.' + String(d.getDate()).padStart(2, '0');
   g.font = Math.round(18 * s) + 'px Jua, sans-serif'; const tw = g.measureText(txt).width;
   g.fillStyle = 'rgba(255,253,246,.88)'; g.beginPath(); g.roundRect(c.width - tw - 34 * s, c.height - 44 * s, tw + 24 * s, 32 * s, 16 * s); g.fill();
   g.fillStyle = '#6b5236'; g.textBaseline = 'middle'; g.fillText(txt, c.width - tw - 22 * s, c.height - 28 * s);
@@ -3191,7 +3191,7 @@ function tick() {
   const df = dispFloor();
   const up = fp ? df + 1 : df;   // 1인칭에서는 위층 바닥이 천장이 되도록 한 층 더 보여요
   F2.visible = up >= 1; F3.visible = up >= 2; F4.visible = up >= 3; F5.visible = up >= 4; F6.visible = up >= 5;
-  if (floorEl.dataset.f !== String(df)) { floorEl.dataset.f = df; floorEl.textContent = (df === 5 ? '옥상' : (df + 1) + '층') + ' · 시안 v46'; }
+  if (floorEl.dataset.f !== String(df)) { floorEl.dataset.f = df; floorEl.textContent = (df === 5 ? '옥상' : (df + 1) + '층') + ' · v51'; }
   // 카메라
   const p = player.position;
   const look = overview ? new THREE.Vector3(6.3, df * 2.8, 8.4) : new THREE.Vector3(p.x, p.y + 0.6, p.z);
