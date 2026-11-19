@@ -112,6 +112,7 @@
   .pItem .meta{font-size:13px;color:#a98a62;line-height:1.5}
   .pItem p{margin:6px 0 8px;font-size:14px;line-height:1.5}
   .pItem a button{font-size:14px;padding:5px 14px}
+  .pItem img{display:block;width:100%;max-height:260px;object-fit:cover;border-radius:12px;margin:4px 0 8px}
   #mg{position:fixed;inset:0;background:rgba(60,45,30,.38);display:none;align-items:center;justify-content:center;z-index:11}
   #mg.open{display:flex}
   .mgBox{padding:12px;width:min(400px,94vw);box-sizing:border-box;text-align:center}
@@ -152,12 +153,12 @@
 <div id="joy"><div id="knob"></div></div>
 <button id="act" class="card"></button>
 <div id="info" class="card"><b id="infoT"></b><img id="infoImg" alt="" style="display:none"><p id="infoX"></p><button id="infoAct" style="display:none"></button><button id="infoClose">닫기</button></div>
-<div id="ig"><div class="mgBox card"><div class="mgTop"><b>🎥 면접 방해꾼 치우기</b><button id="igClose">나가기</button></div><canvas id="igCv" width="360" height="440"></canvas><div class="mgCtl"><button id="igSub">🏆 순위표</button><button id="igMain">시작하기</button></div><div class="mgKeys">마우스로 방해꾼을 콕! · 시작: Space · 나가기: Esc</div></div></div>
+<div id="ig"><div class="mgBox card"><div class="mgTop"><b>🎥 면접 방해꾼 치우기</b><button id="igClose">나가기</button></div><canvas id="igCv" width="360" height="440"></canvas><div class="mgCtl"><button id="igSub">🏆 순위표</button><button id="igMain">시작하기</button></div><div class="mgKeys">마우스로 방해꾼을 콕! · 시작: Space · 다시 하기: Enter · 나가기: Esc</div></div></div>
 <div id="mk"><div class="mgBox card"><div class="mgTop"><b>🍱 전자레인지 타이밍 맞추기</b><button id="mkClose">나가기</button></div><canvas id="mkCv" width="360" height="400"></canvas>
-  <div class="mgCtl"><button id="mkSub">🏆 순위표</button><button id="mkMain">시작하기</button></div><div class="mgKeys">멈추기: Space · 화면 터치 · 나가기: Esc</div></div></div>
+  <div class="mgCtl"><button id="mkSub">🏆 순위표</button><button id="mkMain">시작하기</button></div><div class="mgKeys">멈추기: Space · 화면 터치 · 다시 하기: Enter · 나가기: Esc</div></div></div>
 <div id="dg"><div class="mgBox card"><div class="mgTop"><b>🪞 거울 댄스</b><button id="dgClose">나가기</button></div><canvas id="dgCv" width="360" height="380"></canvas>
   <div class="dgPad"><button data-d="left">⬅</button><button data-d="up">⬆</button><button data-d="down">⬇</button><button data-d="right">➡</button></div>
-  <div class="mgCtl"><button id="dgSub">🏆 순위표</button><button id="dgMain">시작하기</button></div><div class="mgKeys">방향키(또는 WASD)로 따라 추기 · 시작: Space · 나가기: Esc</div></div></div>
+  <div class="mgCtl"><button id="dgSub">🏆 순위표</button><button id="dgMain">시작하기</button></div><div class="mgKeys">방향키(또는 WASD)로 따라 추기 · 시작: Space · 다시 하기: Enter · 나가기: Esc</div></div></div>
 <div id="rank" class="card"><div class="gbHead"><b id="rankT">순위표</b><button id="rankClose">닫기</button></div><div id="rankMode"></div><div id="rankMine"></div>
   <form id="rankForm" autocomplete="off"><input id="rankName" maxlength="10" placeholder="닉네임 (비우면 익명의 소복이)"><button type="button" id="rankSend">기록 올리기</button></form><div id="rankMsg"></div><ol id="rankList"></ol></div>
 <div id="mail" class="card"><div class="gbHead"><b id="mailT">✉️ 익명 우편함</b><button id="mailClose">닫기</button></div>
@@ -169,7 +170,7 @@
   <button id="mailLogin" style="display:none">🔑 관리자 로그인</button><div id="mailLoginInfo"></div>
   <div id="mailAdmin" style="display:none"><button id="mailRead">📬 받은 의견 보기 (관리자)</button><ol id="mailList"></ol></div></div>
 <div id="promo" class="card"><div class="gbHead"><b>지금 모집 중인 프로그램</b><button id="promoClose">닫기</button></div><div id="promoNote"></div><div id="promoList"></div></div>
-<div id="mg"><div class="mgBox card"><div class="mgTop"><b>🫧 텀블러 세척왕</b><button id="mgClose">나가기</button></div><canvas id="mgCv" width="360" height="440"></canvas><div class="mgCtl"><button id="mgPass">넘기기 ⏭</button><button id="mgWash">시작하기</button></div><div class="mgKeys">키보드: Space 닦기 · → 넘기기 · Esc 나가기</div></div></div>
+<div id="mg"><div class="mgBox card"><div class="mgTop"><b>🫧 텀블러 세척왕</b><button id="mgClose">나가기</button></div><canvas id="mgCv" width="360" height="440"></canvas><div class="mgCtl"><button id="mgPass">넘기기 ⏭</button><button id="mgWash">시작하기</button></div><div class="mgKeys">키보드: Space 닦기 · → 넘기기 · Enter 다시 하기 · Esc 나가기</div></div></div>
 <div id="gb" class="card">
   <div class="gbHead"><b>옥상정원 방명록</b><button id="gbClose">닫기</button></div>
   <div id="gbMode"></div>
@@ -598,6 +599,32 @@ const PROGRAMS = [
   { tag: '모집 중', title: '(예시) 주말 원데이 클래스', period: '매주 토요일 14:00', target: '선착순 12명', desc: '여기에 프로그램 소개가 들어가요. 실제 모집 정보로 바꿔 주세요.', url: '', color: '#8a72d6', icon: '🎨' },
 ];
 const MW = { slide: 0, prev: 0, fade: 1, st: 0, wp: 0, wv: 0, hold: 0, active: false, wasNear: false, key: '' };
+/* 인스타그램 연동: 매일 자동으로 만들어지는 programs.json(게임과 같은 GitHub 저장소)을 읽어 미디어월을 채워요.
+   파일이 없으면(미리보기·내려받은 파일·설정 전) 위의 예시 프로그램을 그대로 보여줘요. */
+let PROGRAMS_LIVE = false;
+function kstToday() { return new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 10); }
+function toProgram(it) {
+  const days = it.deadline ? Math.round((Date.parse(it.deadline) - Date.parse(kstToday())) / 864e5) : null;
+  const tag = days === null ? '모집 중' : days <= 0 ? '오늘 마감' : days <= 3 ? '마감 임박' : '모집 중';
+  const color = tag === '모집 중' ? '#5fae8a' : tag === '마감 임박' ? '#e0779a' : '#e0453a';
+  let period = it.period;
+  if (!period && it.deadline) { const d = new Date(it.deadline + 'T00:00:00'); period = (d.getMonth() + 1) + '.' + d.getDate() + '(' + '일월화수목금토'[d.getDay()] + ') 마감'; }
+  const P = { tag, color, icon: '📢', title: it.title || '센터 소식', period: period || '상시 모집', target: it.target || '자세한 내용은 인스타그램에서', desc: it.desc || '', url: it.url, img: it.img };
+  if (it.img) { P.imgEl = new Image(); P.imgEl.onload = () => { MW.key = ''; }; P.imgEl.src = it.img; }
+  return P;
+}
+async function loadPrograms() {
+  try {
+    const r = await fetch('programs.json?t=' + Date.now(), { cache: 'no-store' }); if (!r.ok) return;
+    const j = await r.json(); if (!j || !Array.isArray(j.items)) return;
+    const today = kstToday(), items = j.items.filter(it => !it.deadline || it.deadline >= today);
+    const txt = items.map(it => [it.title, it.period, it.target].join(' ')).join(' ');
+    try { await Promise.race([document.fonts.load('48px Jua', txt + ' 모집중마감임박오늘상시'), new Promise(res => setTimeout(res, 3000))]); } catch (e) {}
+    PROGRAMS.length = 0; items.forEach(it => PROGRAMS.push(toProgram(it)));
+    if (!PROGRAMS.length) PROGRAMS.push({ tag: '안내', color: '#8a72d6', icon: '📮', title: '지금은 모집 중인 프로그램이 없어요', period: '새 소식은 센터 인스타그램에서!', target: j.username ? '@' + j.username : '서울청년센터 성북', desc: '', url: j.profile });
+    PROGRAMS_LIVE = true; MW.slide = 0; MW.prev = 0; MW.fade = 1; MW.key = '';
+  } catch (e) {}
+}
 const screenTex = canvasTex(1040, 400, () => {});
 function mwSlide(g, P, a) {   // 홍보 슬라이드 한 장
   if (!P || a <= 0) return;
@@ -605,12 +632,20 @@ function mwSlide(g, P, a) {   // 홍보 슬라이드 한 장
   g.globalAlpha = a; g.textAlign = 'left'; g.textBaseline = 'middle';
   g.fillStyle = P.color; g.beginPath(); g.roundRect(104, 70, 150, 50, 25); g.fill();
   g.fillStyle = '#ffffff'; g.font = '30px Jua, sans-serif'; g.textAlign = 'center'; g.fillText(P.tag, 179, 96);
+  const hasImg = P.imgEl && P.imgEl.complete && P.imgEl.naturalWidth, TW = hasImg ? 580 : 640;
   g.textAlign = 'left'; g.fillStyle = '#4a3b2c'; let fs = 66; g.font = fs + 'px Jua, sans-serif';
-  while (g.measureText(P.title).width > 640 && fs > 36) { fs -= 4; g.font = fs + 'px Jua, sans-serif'; }
+  while (g.measureText(P.title).width > TW && fs > 34) { fs -= 4; g.font = fs + 'px Jua, sans-serif'; }
+  if (g.measureText(P.title).width > TW) { let t = P.title; while (t.length > 1 && g.measureText(t + '…').width > TW) t = t.slice(0, -1); P.title = t + '…'; }
   g.fillText(P.title, 104, 172);
   g.fillStyle = '#8a7a6a'; g.font = '34px Jua, sans-serif'; g.fillText('📅 ' + P.period, 104, 240); g.fillText('🙋 ' + P.target, 104, 288);
-  g.fillStyle = P.color; g.globalAlpha = a * 0.18; g.beginPath(); g.arc(840, 190, 110, 0, 7); g.fill();
-  g.globalAlpha = a; g.font = '120px sans-serif'; g.textAlign = 'center'; g.fillText(P.icon, 840, 200);
+  if (hasImg) {   // 인스타그램 사진 (정사각형으로 잘라서)
+    const im = P.imgEl, s = Math.min(im.naturalWidth, im.naturalHeight), sx = (im.naturalWidth - s) / 2, sy = (im.naturalHeight - s) / 2;
+    g.save(); g.beginPath(); g.roundRect(712, 62, 236, 236, 26); g.clip(); g.drawImage(im, sx, sy, s, s, 712, 62, 236, 236); g.restore();
+  } else {
+    g.fillStyle = P.color; g.globalAlpha = a * 0.18; g.beginPath(); g.arc(840, 190, 110, 0, 7); g.fill();
+    g.globalAlpha = a; g.font = '120px sans-serif'; g.textAlign = 'center'; g.fillText(P.icon, 840, 200);
+  }
+  g.globalAlpha = a; g.textAlign = 'center';
   g.fillStyle = '#b39b80'; g.font = '24px Jua, sans-serif'; g.fillText('미디어월을 누르면 자세히 볼 수 있어요', 760, 335);
 }
 function drawMediaWall() {
@@ -647,18 +682,20 @@ function updateMediaWall(dt) {   // 평소엔 모집 프로그램 슬라이드, 
   if (key !== MW.key) { MW.key = key; drawMediaWall(); }
 }
 drawMediaWall();
+loadPrograms();
 // 홍보 게시판 창
 function openPromo() {
   infoEl.style.display = 'none';
   const list = document.getElementById('promoList'); list.innerHTML = '';
-  document.getElementById('promoNote').textContent = '지금은 예시 프로그램이에요. 실제 모집 정보로 곧 바뀌어요.';
+  document.getElementById('promoNote').textContent = PROGRAMS_LIVE ? '센터 인스타그램의 모집 소식을 매일 자동으로 가져와요.' : '지금은 예시 프로그램이에요. 실제 모집 정보로 곧 바뀌어요.';
   PROGRAMS.forEach(P => {
     const d = document.createElement('div'); d.className = 'pItem';
+    if (P.img) { const im = document.createElement('img'); im.src = P.img; im.alt = ''; im.loading = 'lazy'; d.appendChild(im); }
     const tg = document.createElement('span'); tg.className = 'tag'; tg.style.background = P.color; tg.textContent = P.tag; d.appendChild(tg);
     const b = document.createElement('b'); b.textContent = P.icon + ' ' + P.title; d.appendChild(b);
     const m = document.createElement('div'); m.className = 'meta'; m.textContent = '📅 ' + P.period; m.appendChild(document.createElement('br')); m.appendChild(document.createTextNode('🙋 ' + P.target)); d.appendChild(m);
     const p = document.createElement('p'); p.textContent = P.desc; d.appendChild(p);
-    if (P.url) { const a = document.createElement('a'); a.href = P.url; a.target = '_blank'; a.rel = 'noopener'; const bt = document.createElement('button'); bt.textContent = '자세히 보기 · 신청하기'; a.appendChild(bt); d.appendChild(a); }
+    if (P.url) { const a = document.createElement('a'); a.href = P.url; a.target = '_blank'; a.rel = 'noopener'; const bt = document.createElement('button'); bt.textContent = PROGRAMS_LIVE ? '인스타그램에서 자세히 보기' : '자세히 보기 · 신청하기'; a.appendChild(bt); d.appendChild(a); }
     list.appendChild(d);
   });
   document.getElementById('promo').classList.add('open');
@@ -1107,10 +1144,53 @@ solidWall(7.7, 0, 12.6, 0, { color: '#e7e2da' });
 solidWall(12.6, 0, 12.6, 19.5, { color: '#e7e2da', windows: [[5.0, 6.3, 0.9, 2.3]] });   // 화상면접실 1 창문
 solidWall(12.6, 19.5, 0, 19.5, { color: '#e7e2da', windows: [[7.3, 8.7, 1.25, 2.5]] });  // 엘리베이터 옆 창문 (모든 층)
 solidWall(0, 19.5, 0, 0, { color: '#e7e2da' });
-// 종합상담실 (안은 내일 사진 보고 채움)
+// 종합상담실
 solidWall(5.6, 0, 5.6, 4.8, { color: '#f3f1ec' });
 solidWall(0, 4.8, 5.6, 4.8, { color: '#f3f1ec', doors: [[4.05, 5.05]] });
-floorPoly([[0, 0], [5.6, 0], [5.6, 4.8], [0, 4.8]], '#e2d8c6');
+floorPoly([[0, 0], [5.6, 0], [5.6, 4.8], [0, 4.8]], '#cfcac0');   // 테라조 느낌 회색 바닥
+{ // 종합상담실 안 (사진 참고): 합판 격자 책장 · 분홍 펠트 벽 · 타원 테이블 · 검정 가죽 팔걸이 의자 4개
+  // 남쪽 벽: 분홍빛 펠트 패널
+  box(3.95, 2.7, 0.02, '#e7d0c4', 2.03, 0.02, 4.71, { r: 0 });
+  [1.35, 2.7].forEach(x => box(0.012, 2.7, 0.025, '#d6bdb0', x, 0.02, 4.705, { r: 0 }));
+  box(3.95, 0.012, 0.025, '#d6bdb0', 2.03, 1.36, 4.705, { r: 0 });
+  // 창가 콘크리트 기둥
+  box(0.42, H, 0.3, '#b9b6b0', 0.21, 0, 0.15, { r: 0 });
+  // 서쪽 벽: 합판 격자 책장 (가운데 두 칸 줄에만 책 · 작은 화분)
+  const L = 4.2, SH = 2.55, DP = 0.36, g = grp(0.08, 4.55, Math.PI / 2), ply = '#e4c99c', ply2 = '#d6b989';
+  const n = 9, cw = L / n, rows = 6, rh = (SH - 0.12) / rows;
+  box(L, SH, 0.02, '#bdb9b2', L / 2, 0, 0.01, { parent: g, r: 0 });                       // 뒤 콘크리트
+  for (let i = 0; i <= n; i++) box(0.03, SH - 0.12, DP, ply, i * cw, 0, DP / 2, { parent: g, r: 0 });
+  for (let j = 0; j <= rows; j++) box(L, 0.03, DP, ply, L / 2, j * rh, DP / 2, { parent: g, r: 0 });
+  box(L + 0.04, 0.12, DP, ply2, L / 2, SH - 0.12, DP / 2, { parent: g, r: 0 });          // 위 띠
+  const SPINE = ['#f4f2ee', '#e9e6df', '#2f3a33', '#3a3a3c', '#d9d6cf', '#8c9a8e', '#f0ebe0'];
+  for (let i = 0; i < n; i++) for (const j of [2, 3]) {
+    const cx = (i + 0.5) * cw, y = j * rh + 0.03, v = rnd();
+    if (v < 0.42) { const k = 2 + Math.floor(rnd() * 3); for (let q = 0; q < k; q++) box(0.035, 0.24 + rnd() * 0.06, 0.2, pick(SPINE), cx - 0.12 + q * 0.04, y, 0.14, { parent: g, r: 0 }); }
+    else if (v < 0.62) { const m = box(0.2, 0.27, 0.02, pick(['#f2efe8', '#e8e3da', '#dfe6ea']), cx, y, 0.13, { parent: g, r: 0 }); m.rotation.x = -0.1;
+      box(0.13, 0.12, 0.004, pick(['#c46a5a', '#6a7f96', '#b89a7a']), cx, y + 0.09, 0.143, { parent: g, r: 0 }).rotation.x = -0.1; }
+    else if (v < 0.8) { cyl(0.04, 0.035, 0.07, '#f7f5f0', cx, y, 0.22, { parent: g }); ball(0.06, pick(['#7cc46b', '#f3d36b', '#b7a6e0', '#f0b6c9']), cx, y + 0.11, 0.22, g); }
+  }
+  addBoxCollider(0.08 + DP / 2, 0.35 + L / 2, DP, L);
+  // 타원 원목 테이블 (유리 상판) + 나무 다리 4개
+  const TX = 2.15, TZ = 2.45;
+  const top = cyl(0.5, 0.5, 0.035, '#c88a3c', TX, 0.6, TZ); top.scale.set(1.3, 1, 0.68);
+  const gl = cyl(0.5, 0.5, 0.008, '#e8f2f2', TX, 0.636, TZ); gl.scale.set(1.28, 1, 0.66); gl.material = new THREE.MeshStandardMaterial({ color: '#e8f2f2', transparent: true, opacity: 0.35, roughness: 0.05 });
+  [[-0.42, -0.17], [0.42, -0.17], [-0.42, 0.17], [0.42, 0.17]].forEach(([dx, dz]) => { const l = cyl(0.022, 0.015, 0.62, '#8a5a2e', TX + dx, 0, TZ + dz); l.rotation.z = -Math.sign(dx) * 0.1; l.rotation.x = Math.sign(dz) * 0.12; });
+  addBoxCollider(TX, TZ, 1.25, 0.66);
+  // 검정 가죽 · 원목 팔걸이 의자
+  function counselChair(x, z, rotY) {
+    const c = grp(x, z, rotY), wd = '#e6d0aa', bk = '#2a2a2d', P = r => ({ parent: c, r }); addSeat(c, 0.45);
+    [[-0.27, 0.22], [0.27, 0.22]].forEach(([lx, lz]) => box(0.05, 0.42, 0.05, wd, lx, 0, lz, P(0.005)));
+    [[-0.27, -0.24], [0.27, -0.24]].forEach(([lx, lz]) => box(0.05, 0.5, 0.05, wd, lx, 0, lz, P(0.005)));
+    [-0.31, 0.31].forEach(sx => { box(0.06, 0.04, 0.58, wd, sx, 0.66, -0.01, P(0.01)); box(0.05, 0.26, 0.05, wd, sx, 0.42, 0.24, P(0.005)); box(0.04, 0.04, 0.5, wd, sx, 0.12, 0, P(0.005)); });
+    box(0.56, 0.1, 0.52, bk, 0, 0.38, 0.02, P(0.03));                         // 방석
+    box(0.52, 0.62, 0.09, bk, 0, 0.46, -0.25, P(0.03));                       // 등받이
+    [0.66, 0.86].forEach(y => box(0.48, 0.008, 0.004, '#141416', 0, y, -0.204, P(0)));   // 누빔 선
+    box(0.008, 0.5, 0.004, '#141416', 0, 0.52, -0.204, P(0));
+    addCircle(x, z, 0.34);
+  }
+  [1.65, 2.65].forEach(x => { counselChair(x, TZ - 0.72, 0); counselChair(x, TZ + 0.72, Math.PI); });
+}
 // 화상면접실 1·2
 const IM = mapZ(7.8) / 2;   // 두 면접실 사이 벽 (둘이 같은 크기)
 RAWZ = true;
@@ -1719,7 +1799,7 @@ autumnTree(11.9, 8.65, 'ginkgo', 1.0, 0.5);   // 북동쪽 벽돌 상자에 심�
   ROOT = SEAS.spring;
   const CHERRY = ['#f7c6d9', '#f4a9c4', '#fbd9e6', '#f6b8cf'];
   TUFTS.forEach(([x, z]) => tuft(x, z, ['#8cc66a', '#a2d47c', '#7bb75c'], 0.8));
-  roundTree(6.9, 8.5, CHERRY); roundTree(9.3, 8.5, CHERRY, 1.1); pine(10.4, 8.5, 2.1, '#5f9e4f', '#6fae5a');
+  roundTree(6.9, 8.5, CHERRY); roundTree(9.3, 8.5, CHERRY, 1.1); roundTree(10.4, 8.5, CHERRY, 0.95);
   roundTree(4.45, 12.0, CHERRY); roundTree(11.9, 8.65, CHERRY, 1.0, 0.5);
   flowers(4.3, 11.0, 8.2, 8.85, 40, ['#ff8fb1', '#ffd65a', '#ffffff', '#c9a0ff', '#ff9e6b']); flowers(4.25, 4.85, 9.1, 13.5, 24, ['#ff8fb1', '#ffd65a', '#ffffff', '#c9a0ff']);
   scatter(45, ['#f7c6d9', '#fbd9e6', '#ffffff']);
@@ -2332,7 +2412,7 @@ const hex2 = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
 const lerpHex = (a, b, t) => '#' + hex2(a).map((v, i) => Math.round(v + (hex2(b)[i] - v) * t).toString(16).padStart(2, '0')).join('');
 const setCol = (c, hx) => { if (c && c.set) c.set(hx); };
 const SEASON_LOOK = {
-  spring: { grass: '#b2db8f', leaves: ['#9fd884', '#f5bfd3', '#b3e294'] },
+  spring: { grass: '#b2db8f', leaves: ['#f6c1d5', '#f9d3e2', '#f2adc7'] },   // 봄: 나무가 전부 벚꽃색
   summer: { grass: '#93c873', leaves: ['#5aa84f', '#6dba5f', '#4e9a46'] },
   autumn: { grass: '#c4c27e', leaves: ['#e8a03a', '#d9572e', '#f2c230'] },
   winter: { grass: '#eef2f4', leaves: ['#f2f5f7', '#e6ecef', '#ffffff'] },
@@ -2448,13 +2528,19 @@ function mgNewItem() {
 }
 function mgText(s, col = '#4a3b2c', big = false) { MG.texts.push({ s, col, big, x: 180, y: 120, life: 1.1 }); }
 function mgStart() { MG.state = 'count'; MG.cd = 2.4; MG.left = TG.time; MG.score = 0; MG.combo = 0; MG.fx = []; MG.texts = []; MG.newBest = false; mgNewItem(); mgButtons(); }
+/* 결과 화면 보호: 게임이 끝난 뒤 2초 동안은 눌러도 다시 시작되지 않고, 다시 하기는 버튼(또는 Enter)으로만 해요.
+   (스페이스바·화면을 계속 누르다가 결과를 못 보고 넘어가는 일을 막아요) */
+const RESULT_LOCK_MS = 2000;
+const resultLocked = G => G.state === 'over' && performance.now() - (G.overAt || 0) < RESULT_LOCK_MS;
+function endLock(G, refresh) { G.overAt = performance.now(); setTimeout(refresh, RESULT_LOCK_MS + 30); }
 function mgButtons() {
-  mgWash.textContent = MG.state === 'intro' ? '시작하기' : MG.state === 'over' ? '다시 하기' : '박박 닦기 🫧';
+  mgWash.textContent = MG.state === 'intro' ? '시작하기' : MG.state === 'over' ? (resultLocked(MG) ? '결과 확인 중…' : '다시 하기') : '박박 닦기 🫧';
   mgPass.textContent = MG.state === 'play' || MG.state === 'count' ? '넘기기 ⏭' : '🏆 순위표';
-  mgPass.disabled = MG.state === 'count'; mgWash.disabled = MG.state === 'count';
+  mgPass.disabled = MG.state === 'count' || resultLocked(MG); mgWash.disabled = MG.state === 'count' || resultLocked(MG);
 }
 function mgDoWash() {
-  if (MG.state === 'intro' || MG.state === 'over') { mgStart(); return; }
+  if (MG.state === 'intro') { mgStart(); return; }
+  if (MG.state === 'over') return;   // 결과 화면에서는 닦기 동작으로 다시 시작하지 않아요
   const it = MG.item; if (MG.state !== 'play' || !it || it.phase !== 'idle') return;
   if (it.kind === 'cup') {   // 일회용 컵은 세척하면 안 돼요
     MG.left = Math.max(0, MG.left - TG.cupPenalty); MG.combo = 0; MG.shake = 0.35;
@@ -2469,6 +2555,7 @@ function mgDoWash() {
   }
 }
 function mgDoPass() {
+  if (resultLocked(MG)) return;
   if (MG.state === 'intro' || MG.state === 'over') { openRank('tumbler', MG.state === 'over' && !MG.sent ? MG.score : null); return; }
   const it = MG.item; if (MG.state !== 'play' || !it || it.phase !== 'idle') return;
   if (it.kind === 'cup') { MG.left = Math.min(TG.time, MG.left + TG.passBonus); mgText('👍 잘했어요! +' + TG.passBonus + '초', '#3d8f5a'); }
@@ -2481,14 +2568,15 @@ function openTumblerGame() {
   MG.open = true; MG.state = 'intro'; MG.last = performance.now(); mgButtons(); mgEl.classList.add('open'); requestAnimationFrame(mgLoop);
 }
 function closeTumblerGame() { MG.open = false; mgEl.classList.remove('open'); }
-mgWash.addEventListener('pointerdown', e => { e.preventDefault(); mgDoWash(); });
+mgWash.addEventListener('pointerdown', e => { e.preventDefault(); if (MG.state === 'over') { if (!resultLocked(MG)) mgStart(); } else mgDoWash(); });
 mgPass.addEventListener('pointerdown', e => { e.preventDefault(); mgDoPass(); });
 mgCv.addEventListener('pointerdown', e => { e.preventDefault(); mgDoWash(); });
 document.getElementById('mgClose').onclick = closeTumblerGame;
 addEventListener('keydown', e => {   // 게임 중에는 키보드가 게임만 조작
   if (!MG.open || rankEl.classList.contains('open')) return;
   if (!e.repeat) {
-    if (['Space', 'Enter', 'KeyF', 'ArrowUp', 'KeyW'].includes(e.code)) mgDoWash();
+    if (MG.state === 'over') { if (e.code === 'Enter' && !resultLocked(MG)) mgStart(); else if (e.code === 'Escape') closeTumblerGame(); }
+    else if (['Space', 'Enter', 'KeyF', 'ArrowUp', 'KeyW'].includes(e.code)) mgDoWash();
     else if (['ArrowRight', 'KeyD', 'KeyX'].includes(e.code)) mgDoPass();
     else if (e.code === 'Escape') closeTumblerGame();
   }
@@ -2564,7 +2652,7 @@ function mgLoop(now) {
     if (MG.left <= 0) {
       MG.left = 0; MG.state = 'over';
       if (MG.score > MG.best) { MG.best = MG.score; MG.newBest = true; LS.set('sobok.tumblerBest', String(MG.best)); }
-      mgButtons(); MG.sent = false; if (MG.score > 0) setTimeout(() => { if (MG.open && MG.state === 'over') openRank('tumbler', MG.score); }, 1400);
+      endLock(MG, mgButtons); mgButtons(); MG.sent = false; if (MG.score > 0) setTimeout(() => { if (MG.open && MG.state === 'over') openRank('tumbler', MG.score); }, 2200);
     }
   }
   const it = MG.item;
@@ -2602,15 +2690,15 @@ let igCtx = igCv.getContext('2d');
 const IG = { open: false, state: 'intro', t: 0, pt: 0, left: 0, cd: 0, score: 0, lives: 3, items: [], texts: [], fx: [], spawn: 0, sad: 0, sent: false, newBest: false, last: 0, best: +(LS.get('sobok.interviewBest') || 0) };
 function igButtons() {
   const play = IG.state === 'play' || IG.state === 'count';
-  igMain.textContent = IG.state === 'intro' ? '시작하기' : IG.state === 'over' ? '다시 하기' : '방해꾼을 콕! 👆';
-  igMain.disabled = play; igSub.disabled = play;
+  igMain.textContent = IG.state === 'intro' ? '시작하기' : IG.state === 'over' ? (resultLocked(IG) ? '결과 확인 중…' : '다시 하기') : '방해꾼을 콕! 👆';
+  igMain.disabled = play || resultLocked(IG); igSub.disabled = play || resultLocked(IG);
 }
 function igStart() { Object.assign(IG, { state: 'count', cd: 2.4, score: 0, lives: IGC.lives, items: [], texts: [], fx: [], left: IGC.time, pt: 0, spawn: 0.3, sad: 0, sent: false, newBest: false }); igButtons(); }
 function igText(s, x, y, col, big) { IG.texts.push({ s, x, y, col: col || '#4a3b2c', big, life: 0.9 }); }
 function igEnd() {
   IG.state = 'over'; IG.items = [];
   if (IG.score > IG.best) { IG.best = IG.score; IG.newBest = true; LS.set('sobok.interviewBest', String(IG.best)); }
-  igButtons(); if (IG.score > 0) setTimeout(() => { if (IG.open && IG.state === 'over') openRank('interview', IG.score); }, 1400);
+  endLock(IG, igButtons); igButtons(); if (IG.score > 0) setTimeout(() => { if (IG.open && IG.state === 'over') openRank('interview', IG.score); }, 2200);
 }
 function igTap(x, y) {
   if (IG.state === 'intro' || IG.state === 'over') return;
@@ -2690,12 +2778,12 @@ function igDraw() {
 function openInterviewGame() { infoEl.style.display = 'none'; keys.clear(); igCtx = cvSetup(igCv, 360, 440); IG.open = true; IG.state = 'intro'; IG.last = performance.now(); igButtons(); igEl.classList.add('open'); requestAnimationFrame(igLoop); }
 function closeInterviewGame() { IG.open = false; igEl.classList.remove('open'); }
 igCv.addEventListener('pointerdown', e => { e.preventDefault(); const [x, y] = cvPos(igCv, e, 360, 440); igTap(x, y); });
-igMain.addEventListener('click', () => { if (IG.state === 'intro' || IG.state === 'over') igStart(); });
+igMain.addEventListener('click', () => { if (IG.state === 'intro' || (IG.state === 'over' && !resultLocked(IG))) igStart(); });
 igSub.addEventListener('click', () => openRank('interview', IG.state === 'over' && !IG.sent ? IG.score : null));
 document.getElementById('igClose').onclick = closeInterviewGame;
 addEventListener('keydown', e => {
   if (!IG.open || rankEl.classList.contains('open')) return;
-  if (!e.repeat) { if ((e.code === 'Space' || e.code === 'Enter') && (IG.state === 'intro' || IG.state === 'over')) igStart(); else if (e.code === 'Escape') closeInterviewGame(); }
+  if (!e.repeat) { if (((e.code === 'Space' || e.code === 'Enter') && IG.state === 'intro') || (e.code === 'Enter' && IG.state === 'over' && !resultLocked(IG))) igStart(); else if (e.code === 'Escape') closeInterviewGame(); }
   e.preventDefault(); e.stopImmediatePropagation();
 }, true);
 addEventListener('keyup', e => { if (IG.open) e.stopImmediatePropagation(); }, true);
@@ -2711,8 +2799,8 @@ let dgCtx = dgCv.getContext('2d');
 const DG = { open: false, state: 'intro', t: 0, seq: [], i: 0, timer: 0, step: 0.6, pose: null, poseT: 0, poseMax: 0.3, arrow: null, lives: 3, level: 1, score: 0, msg: '', msgT: 0, sent: false, newBest: false, last: 0, best: +(LS.get('sobok.danceBest') || 0) };
 const dRand = () => D_DIRS[Math.floor(Math.random() * 4)];
 function dgButtons() {
-  dgMain.textContent = DG.state === 'intro' ? '시작하기' : DG.state === 'over' ? '다시 하기' : DG.state === 'input' ? '따라 추세요! 🎵' : '잘 보세요 👀';
-  dgMain.disabled = !(DG.state === 'intro' || DG.state === 'over'); dgSub.disabled = !dgMain.disabled ? false : true;
+  dgMain.textContent = DG.state === 'intro' ? '시작하기' : DG.state === 'over' ? (resultLocked(DG) ? '결과 확인 중…' : '다시 하기') : DG.state === 'input' ? '따라 추세요! 🎵' : '잘 보세요 👀';
+  dgMain.disabled = !(DG.state === 'intro' || DG.state === 'over') || resultLocked(DG); dgSub.disabled = !(DG.state === 'intro' || DG.state === 'over') || resultLocked(DG);
   dgPadBtns.forEach(b => b.disabled = DG.state !== 'input');
 }
 function dgMsg(s) { DG.msg = s; DG.msgT = 1.1; }
@@ -2734,7 +2822,7 @@ function dgPress(d) {
 function dgEnd() {
   DG.state = 'over'; DG.pose = null; DG.arrow = null;
   if (DG.score > DG.best) { DG.best = DG.score; DG.newBest = true; LS.set('sobok.danceBest', String(DG.best)); }
-  dgButtons(); if (DG.score > 0) setTimeout(() => { if (DG.open && DG.state === 'over') openRank('dance', DG.score); }, 1400);
+  endLock(DG, dgButtons); dgButtons(); if (DG.score > 0) setTimeout(() => { if (DG.open && DG.state === 'over') openRank('dance', DG.score); }, 2200);
 }
 function dgLoop(now) {
   if (!DG.open) return;
@@ -2823,7 +2911,7 @@ function dgDraw() {
 function openDanceGame() { infoEl.style.display = 'none'; keys.clear(); sobokPortrait(); dgCtx = cvSetup(dgCv, 360, 380); DG.open = true; DG.state = 'intro'; DG.pose = null; DG.last = performance.now(); dgButtons(); dgEl.classList.add('open'); requestAnimationFrame(dgLoop); }
 function closeDanceGame() { DG.open = false; dgEl.classList.remove('open'); }
 dgPadBtns.forEach(b => b.addEventListener('pointerdown', e => { e.preventDefault(); dgPress(b.dataset.d); }));
-dgMain.addEventListener('click', () => { if (DG.state === 'intro' || DG.state === 'over') dgStart(); });
+dgMain.addEventListener('click', () => { if (DG.state === 'intro' || (DG.state === 'over' && !resultLocked(DG))) dgStart(); });
 dgSub.addEventListener('click', () => openRank('dance', DG.state === 'over' && !DG.sent ? DG.score : null));
 document.getElementById('dgClose').onclick = closeDanceGame;
 addEventListener('keydown', e => {
@@ -2831,7 +2919,7 @@ addEventListener('keydown', e => {
   if (!e.repeat) {
     const m = { ArrowUp: 'up', KeyW: 'up', ArrowDown: 'down', KeyS: 'down', ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right' }[e.code];
     if (m) dgPress(m);
-    else if ((e.code === 'Space' || e.code === 'Enter') && (DG.state === 'intro' || DG.state === 'over')) dgStart();
+    else if (((e.code === 'Space' || e.code === 'Enter') && DG.state === 'intro') || (e.code === 'Enter' && DG.state === 'over' && !resultLocked(DG))) dgStart();
     else if (e.code === 'Escape') closeDanceGame();
   }
   e.preventDefault(); e.stopImmediatePropagation();
@@ -2897,9 +2985,9 @@ const mkEl = document.getElementById('mk'), mkCv = document.getElementById('mkCv
 let mkCtx = mkCv.getContext('2d');
 const MK = { open: false, state: 'intro', t: 0, round: 0, score: 0, lives: 3, p: 0, speed: 0.5, zc: 0.5, zw: 0.2, food: MK_FOODS[0], res: '', resCol: '', timer: 0, sent: false, newBest: false, last: 0, best: +(LS.get('sobok.mkBest') || 0) };
 function mkButtons() {
-  mkMain.textContent = MK.state === 'intro' ? '시작하기' : MK.state === 'over' ? '다시 하기' : MK.state === 'run' ? '띵! 멈추기 ⏹' : '…';
-  mkMain.disabled = !(MK.state === 'intro' || MK.state === 'over' || MK.state === 'run');
-  mkSub.disabled = !(MK.state === 'intro' || MK.state === 'over');
+  mkMain.textContent = MK.state === 'intro' ? '시작하기' : MK.state === 'over' ? (resultLocked(MK) ? '결과 확인 중…' : '다시 하기') : MK.state === 'run' ? '띵! 멈추기 ⏹' : '…';
+  mkMain.disabled = !(MK.state === 'intro' || MK.state === 'over' || MK.state === 'run') || resultLocked(MK);
+  mkSub.disabled = !(MK.state === 'intro' || MK.state === 'over') || resultLocked(MK);
 }
 function mkStart() { Object.assign(MK, { round: 0, score: 0, lives: MKC.lives, sent: false, newBest: false }); mkNext(); }
 function mkNext() {
@@ -2919,7 +3007,7 @@ function mkStop() { if (MK.state === 'run') mkJudge(false); }
 function mkEnd() {
   MK.state = 'over';
   if (MK.score > MK.best) { MK.best = MK.score; MK.newBest = true; LS.set('sobok.mkBest', String(MK.best)); }
-  mkButtons(); if (MK.score > 0) setTimeout(() => { if (MK.open && MK.state === 'over') openRank('microwave', MK.score); }, 1400);
+  endLock(MK, mkButtons); mkButtons(); if (MK.score > 0) setTimeout(() => { if (MK.open && MK.state === 'over') openRank('microwave', MK.score); }, 2200);
 }
 function mkLoop(now) {
   if (!MK.open) return;
@@ -2976,12 +3064,12 @@ function mkDraw() {
 function openMicrowaveGame() { infoEl.style.display = 'none'; keys.clear(); mkCtx = cvSetup(mkCv, 360, 400); MK.open = true; MK.state = 'intro'; MK.last = performance.now(); mkButtons(); mkEl.classList.add('open'); requestAnimationFrame(mkLoop); }
 function closeMicrowaveGame() { MK.open = false; mkEl.classList.remove('open'); }
 mkCv.addEventListener('pointerdown', e => { e.preventDefault(); mkStop(); });
-mkMain.addEventListener('click', () => { if (MK.state === 'intro' || MK.state === 'over') mkStart(); else mkStop(); });
+mkMain.addEventListener('click', () => { if (MK.state === 'intro' || (MK.state === 'over' && !resultLocked(MK))) mkStart(); else if (MK.state !== 'over') mkStop(); });
 mkSub.addEventListener('click', () => openRank('microwave', MK.state === 'over' && !MK.sent ? MK.score : null));
 document.getElementById('mkClose').onclick = closeMicrowaveGame;
 addEventListener('keydown', e => {
   if (!MK.open || rankEl.classList.contains('open')) return;
-  if (!e.repeat) { if (e.code === 'Space' || e.code === 'Enter') { if (MK.state === 'intro' || MK.state === 'over') mkStart(); else mkStop(); } else if (e.code === 'Escape') closeMicrowaveGame(); }
+  if (!e.repeat) { if (e.code === 'Space' || e.code === 'Enter') { if (MK.state === 'intro') mkStart(); else if (MK.state === 'over') { if (e.code === 'Enter' && !resultLocked(MK)) mkStart(); } else mkStop(); } else if (e.code === 'Escape') closeMicrowaveGame(); }
   e.preventDefault(); e.stopImmediatePropagation();
 }, true);
 addEventListener('keyup', e => { if (MK.open) e.stopImmediatePropagation(); }, true);
@@ -3103,7 +3191,7 @@ function tick() {
   const df = dispFloor();
   const up = fp ? df + 1 : df;   // 1인칭에서는 위층 바닥이 천장이 되도록 한 층 더 보여요
   F2.visible = up >= 1; F3.visible = up >= 2; F4.visible = up >= 3; F5.visible = up >= 4; F6.visible = up >= 5;
-  if (floorEl.dataset.f !== String(df)) { floorEl.dataset.f = df; floorEl.textContent = (df === 5 ? '옥상' : (df + 1) + '층') + ' · 시안 v42'; }
+  if (floorEl.dataset.f !== String(df)) { floorEl.dataset.f = df; floorEl.textContent = (df === 5 ? '옥상' : (df + 1) + '층') + ' · 시안 v46'; }
   // 카메라
   const p = player.position;
   const look = overview ? new THREE.Vector3(6.3, df * 2.8, 8.4) : new THREE.Vector3(p.x, p.y + 0.6, p.z);
