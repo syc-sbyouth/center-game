@@ -2127,7 +2127,7 @@ const FIREBASE_CONFIG = {   // 센터 Firebase (sb-centergame)
   appId: '1:383144142838:web:41edb5f74864d7ea3789d7'
 };
 const FB_VER = '10.12.2';
-const APPCHECK_SITE_KEY = null;   // reCAPTCHA v3 사이트 키를 받으면 여기에 넣어요 (진짜 게임 화면에서 온 요청만 받기)
+const APPCHECK_SITE_KEY = '6LcwXCcuAAAAAARnLxjNAe4OYuFXPSdl8RF_i5B1';   // Fraud Defense(reCAPTCHA Enterprise) 사이트 키를 받으면 여기에 넣어요 (진짜 게임 화면에서 온 요청만 받기)
 const GB = { mode: 'demo', uid: null, isAdmin: false, entries: [], fb: null, unsub: null, ready: null, err: null, demoAdmin: false };
 const gbEl = document.getElementById('gb'), gbList = document.getElementById('gbList'), gbMode = document.getElementById('gbMode');
 const gbName = document.getElementById('gbName'), gbText = document.getElementById('gbText'), gbMsg = document.getElementById('gbMsg');
@@ -2151,7 +2151,7 @@ function gbInit() {
       const base = 'https://www.gstatic.com/firebasejs/' + FB_VER + '/';
       const [appM, authM, fsM] = await Promise.all([import(base + 'firebase-app.js'), import(base + 'firebase-auth.js'), import(base + 'firebase-firestore.js')]);
       const app = appM.initializeApp(FIREBASE_CONFIG);
-      if (APPCHECK_SITE_KEY) { try { const acM = await import(base + 'firebase-app-check.js'); acM.initializeAppCheck(app, { provider: new acM.ReCaptchaV3Provider(APPCHECK_SITE_KEY), isTokenAutoRefreshEnabled: true }); } catch (e) { console.warn('App Check', e); } }
+      if (APPCHECK_SITE_KEY) { try { const acM = await import(base + 'firebase-app-check.js'); acM.initializeAppCheck(app, { provider: new acM.ReCaptchaEnterpriseProvider(APPCHECK_SITE_KEY), isTokenAutoRefreshEnabled: true }); } catch (e) { console.warn('App Check', e); } }
       const auth = authM.getAuth(app), db = fsM.getFirestore(app);
       GB.fb = { authM, fsM, auth, db };
       await authM.setPersistence(auth, authM.browserLocalPersistence).catch(() => {});
@@ -3099,7 +3099,7 @@ function tick() {
   const df = dispFloor();
   const up = fp ? df + 1 : df;   // 1인칭에서는 위층 바닥이 천장이 되도록 한 층 더 보여요
   F2.visible = up >= 1; F3.visible = up >= 2; F4.visible = up >= 3; F5.visible = up >= 4; F6.visible = up >= 5;
-  if (floorEl.dataset.f !== String(df)) { floorEl.dataset.f = df; floorEl.textContent = (df === 5 ? '옥상' : (df + 1) + '층') + ' · 시안 v39'; }
+  if (floorEl.dataset.f !== String(df)) { floorEl.dataset.f = df; floorEl.textContent = (df === 5 ? '옥상' : (df + 1) + '층') + ' · 시안 v40'; }
   // 카메라
   const p = player.position;
   const look = overview ? new THREE.Vector3(6.3, df * 2.8, 8.4) : new THREE.Vector3(p.x, p.y + 0.6, p.z);
