@@ -87,6 +87,8 @@
   #mailSend{background:#ffd2c4}
   #mailMsg{font-size:14px;min-height:20px;margin-top:6px;color:#d0645a}
   #mailMode{font-size:12px;color:#a98a62;margin-top:2px}
+  #mailLogin{font-size:12px;padding:4px 10px;margin-top:8px;opacity:.75}
+  #mailLoginInfo{font-size:12px;color:#a98a62;word-break:break-all}
   #mailList{margin:8px 0 0;padding-left:22px;font-size:14px;line-height:1.55}
   #mailList li{margin-bottom:8px;white-space:pre-line}
   #mailList small{color:#a98a62}
@@ -155,13 +157,14 @@
   <div class="dgPad"><button data-d="left">⬅</button><button data-d="up">⬆</button><button data-d="down">⬇</button><button data-d="right">➡</button></div>
   <div class="mgCtl"><button id="dgSub">🏆 순위표</button><button id="dgMain">시작하기</button></div><div class="mgKeys">방향키(또는 WASD)로 따라 추기 · 시작: Space · 나가기: Esc</div></div></div>
 <div id="rank" class="card"><div class="gbHead"><b id="rankT">순위표</b><button id="rankClose">닫기</button></div><div id="rankMode"></div><div id="rankMine"></div>
-  <form id="rankForm" autocomplete="off"><input id="rankName" maxlength="10" placeholder="닉네임 (10자까지)"><button type="submit" id="rankSend">기록 올리기</button></form><div id="rankMsg"></div><ol id="rankList"></ol></div>
+  <form id="rankForm" autocomplete="off"><input id="rankName" maxlength="10" placeholder="닉네임 (10자까지)"><button type="button" id="rankSend">기록 올리기</button></form><div id="rankMsg"></div><ol id="rankList"></ol></div>
 <div id="mail" class="card"><div class="gbHead"><b id="mailT">✉️ 익명 우편함</b><button id="mailClose">닫기</button></div>
-  <p class="mailSub">센터를 이용한 후기나 바라는 점을 자유롭게 남겨 주세요.<br>이름은 남지 않고, 센터 선생님들만 읽어요.</p>
+  <p class="mailSub">센터를 이용한 후기나 바라는 점을 자유롭게 남겨 주세요.<br>이름은 남지 않고, 청년지원매니저만 읽어요.<br>여러분의 소중한 의견이 센터를 더 좋은 공간으로 만들어요.</p>
   <div id="mailKinds"><button data-k="후기" class="on">💛 이용 후기</button><button data-k="개선">🛠 개선 의견</button><button data-k="기타">💬 기타</button></div>
   <textarea id="mailText" maxlength="500" placeholder="예) 화상면접실 덕분에 면접 준비를 잘했어요!"></textarea>
   <div class="mailRow"><span id="mailCount">0 / 500</span><button id="mailSend">💌 보내기</button></div><div id="mailMsg"></div>
   <div id="mailMode"></div>
+  <button id="mailLogin" style="display:none">🔑 관리자 로그인</button><div id="mailLoginInfo"></div>
   <div id="mailAdmin" style="display:none"><button id="mailRead">📬 받은 의견 보기 (관리자)</button><ol id="mailList"></ol></div></div>
 <div id="promo" class="card"><div class="gbHead"><b>지금 모집 중인 프로그램</b><button id="promoClose">닫기</button></div><div id="promoNote"></div><div id="promoList"></div></div>
 <div id="mg"><div class="mgBox card"><div class="mgTop"><b>🫧 텀블러 세척왕</b><button id="mgClose">나가기</button></div><canvas id="mgCv" width="360" height="440"></canvas><div class="mgCtl"><button id="mgPass">넘기기 ⏭</button><button id="mgWash">시작하기</button></div><div class="mgKeys">키보드: Space 닦기 · → 넘기기 · Esc 나가기</div></div></div>
@@ -172,7 +175,7 @@
   <form id="gbForm" autocomplete="off">
     <input id="gbName" maxlength="10" placeholder="닉네임 (10자까지)">
     <textarea id="gbText" maxlength="100" rows="2" placeholder="센터에 남기고 싶은 한마디 (100자까지)"></textarea>
-    <div class="gbRow"><span id="gbCount">0/100</span><span id="gbMsg"></span><button type="submit" id="gbSend">남기기</button></div>
+    <div class="gbRow"><span id="gbCount">0/100</span><span id="gbMsg"></span><button type="button" id="gbSend">남기기</button></div>
   </form>
   <div class="gbFoot"><span id="gbAdminInfo"></span><button type="button" id="gbAdmin">관리자</button></div>
 </div>
@@ -510,7 +513,7 @@ function directory(here, x, z) {
 const tileTex = canvasTex(256, 192, (c, w, h) => { c.fillStyle = '#eee0c8'; c.fillRect(0, 0, w, h); c.strokeStyle = '#d6c6a8'; c.lineWidth = 2; for (let x = 0; x < w; x += 12) { c.beginPath(); c.moveTo(x, 0); c.lineTo(x, h); c.stroke(); } for (let y = 0; y < h; y += 32) { c.beginPath(); c.moveTo(0, y); c.lineTo(w, y); c.stroke(); } });
 // 익명 우편함 (앞 = 로컬 +z). stand = 바닥에 세우는 다리형
 const MAILBOXES = [];
-const MAIL_INFO_TEXT = '센터를 이용한 후기나 바라는 점을 남겨 주세요.\n이름 없이 익명으로 센터에 전달돼요.';
+const MAIL_INFO_TEXT = '센터를 이용한 후기나 바라는 점을 남겨 주세요.\n이름은 남지 않고, 청년지원매니저만 읽어요.\n여러분의 소중한 의견이 센터를 더 좋은 공간으로 만들어요.';
 const mailSignTex = canvasTex(256, 128, (c, w, h) => {
   c.fillStyle = '#fff6e4'; c.beginPath(); c.roundRect(6, 6, w - 12, h - 12, 22); c.fill();
   c.fillStyle = '#e0634f'; c.font = '46px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('✉', w / 2, 44);
@@ -695,7 +698,7 @@ function plantPot(x, z, s = 1) {
   ball(0.3 * s, '#7cc46b', x, 0.6 * s, z); ball(0.2 * s, '#8fd17a', x + 0.12 * s, 0.82 * s, z + 0.05 * s);
 }
 roundTable(1.9, 6.2);
-mailbox(1.9, 6.2, Math.PI / 4, 0.725);   // 1층 익명 우편함 (원형 테이블 위)
+mailbox(1.9, 6.2, Math.PI - Math.atan2(1.1, 2), 0.725);   // 화이트보드 글씨와 같은 쪽(보는 사람 쪽)을 보게   // 1층 익명 우편함 (원형 테이블 위)
 
 // 이동식 화이트보드 (안내 문구, 누르면 크게 보기)
 {
@@ -2118,6 +2121,7 @@ function gbBad(s) {
   if (/https?:|www\.|\.com|\.kr|\.net/i.test(s)) return '링크는 남길 수 없어요.';
   return BAD_WORDS.some(w => t.includes(w)) ? '바르고 고운 말로 남겨 주세요!' : '';
 }
+function lsOK() { try { localStorage.setItem('sobok.t', '1'); localStorage.removeItem('sobok.t'); return true; } catch (e) { return false; } }
 function gbInit() {
   if (GB.ready) return GB.ready;
   return GB.ready = (async () => {
@@ -2178,6 +2182,7 @@ function gbRender() {
 async function gbPost(name, text) {
   const color = GB_COLORS[Math.floor(Math.random() * GB_COLORS.length)];
   if (GB.mode === 'demo') {
+    if (!lsOK()) throw new Error('nostore');
     GB.entries.unshift({ id: 'd' + Date.now(), name, text, uid: GB.uid, color, at: Date.now() });
     LS.set('sobok.gb.demo', JSON.stringify(GB.entries.slice(0, 100))); gbRender();
   } else if (GB.mode === 'live') {
@@ -2201,8 +2206,8 @@ async function openGuestbook() {
 }
 document.getElementById('gbClose').onclick = () => { gbEl.classList.remove('open'); if (document.activeElement) document.activeElement.blur(); };
 gbText.addEventListener('input', () => { document.getElementById('gbCount').textContent = gbText.value.length + '/100'; });
-document.getElementById('gbForm').addEventListener('submit', async ev => {
-  ev.preventDefault();
+const gbSubmit = async ev => {
+  if (ev) ev.preventDefault();
   const name = gbName.value.trim(), text = gbText.value.trim();
   if (!name) { gbMsg.textContent = '닉네임을 적어 주세요.'; return; }
   if (!text) { gbMsg.textContent = '한마디를 적어 주세요.'; return; }
@@ -2210,9 +2215,13 @@ document.getElementById('gbForm').addEventListener('submit', async ev => {
   const last = +(LS.get('sobok.gbLast') || 0); if (Date.now() - last < 30000) { gbMsg.textContent = '조금 뒤에 다시 남겨 주세요. (30초)'; return; }
   const btn = document.getElementById('gbSend'); btn.disabled = true; gbMsg.textContent = '';
   try { await gbPost(name, text); LS.set('sobok.gbName', name); gbText.value = ''; document.getElementById('gbCount').textContent = '0/100'; gbMsg.style.color = '#3d8f5a'; gbMsg.textContent = '방명록을 남겼어요!'; }
-  catch (e) { gbMsg.style.color = ''; gbMsg.textContent = '남기지 못했어요. 잠시 후 다시 시도해 주세요.'; }
+  catch (e) { gbMsg.style.color = ''; gbMsg.textContent = e && e.message === 'nostore' ? '이 화면에서는 글을 저장할 수 없어요. 크롬이나 사파리로 열어 주세요.' : '남기지 못했어요. 잠시 후 다시 시도해 주세요.'; }
   btn.disabled = false; setTimeout(() => { gbMsg.style.color = ''; }, 3000);
-});
+};
+// 미리보기 화면처럼 '양식 보내기'가 막힌 곳에서도 되도록 버튼으로 직접 처리
+document.getElementById('gbForm').addEventListener('submit', ev => ev.preventDefault());
+document.getElementById('gbSend').addEventListener('click', () => gbSubmit());
+gbName.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); gbText.focus(); } });
 function gbAdminUI() {
   const info = document.getElementById('gbAdminInfo'), b = document.getElementById('gbAdmin');
   if (GB.mode === 'demo') { b.textContent = GB.demoAdmin ? '관리자 끄기 (연습)' : '관리자 (연습)'; info.textContent = GB.demoAdmin ? '연습용 관리자: 모든 글을 지울 수 있어요.' : ''; return; }
@@ -2791,9 +2800,16 @@ async function openMail(f) {
   infoEl.style.display = 'none'; keys.clear(); await gbInit();
   MAIL.floor = f; document.getElementById('mailT').textContent = '✉️ 익명 우편함 · ' + floorName(f);
   document.getElementById('mailMode').textContent = GB.mode === 'live' ? '' : '연습 모드예요. 지금은 이 기기에만 저장돼요. (저장 공간을 연결하면 센터로 전달돼요)';
-  document.getElementById('mailAdmin').style.display = GB.isAdmin || GB.demoAdmin ? 'block' : 'none';
+  mailAdminUI();
   document.getElementById('mailList').innerHTML = ''; mailMsg.textContent = ''; mailEl.classList.add('open');
 }
+function mailAdminUI() {
+  const admin = GB.isAdmin || GB.demoAdmin, lb = document.getElementById('mailLogin');
+  document.getElementById('mailAdmin').style.display = admin ? 'block' : 'none';
+  lb.style.display = GB.mode === 'live' && !admin ? 'inline-block' : 'none';
+  if (GB.mode === 'live') { const g = GB.fb.auth.currentUser && !GB.fb.auth.currentUser.isAnonymous; document.getElementById('mailLoginInfo').textContent = g && !GB.isAdmin ? '관리자 등록 번호: ' + GB.uid : ''; }
+}
+document.getElementById('mailLogin').addEventListener('click', async () => { await document.getElementById('gbAdmin').onclick(); mailAdminUI(); });
 document.getElementById('mailClose').onclick = () => { mailEl.classList.remove('open'); if (document.activeElement) document.activeElement.blur(); };
 document.querySelectorAll('#mailKinds button').forEach(b => b.addEventListener('click', () => { MAIL.kind = b.dataset.k; document.querySelectorAll('#mailKinds button').forEach(x => x.classList.toggle('on', x === b)); }));
 mailText.addEventListener('input', () => { document.getElementById('mailCount').textContent = mailText.value.length + ' / 500'; });
@@ -2864,8 +2880,8 @@ async function openRank(game, score) {
   rankEl.classList.add('open'); rankRender();
 }
 document.getElementById('rankClose').onclick = () => { rankEl.classList.remove('open'); if (document.activeElement) document.activeElement.blur(); };
-document.getElementById('rankForm').addEventListener('submit', async ev => {
-  ev.preventDefault();
+const rankFormSubmit = async ev => {
+  if (ev) ev.preventDefault();
   const name = document.getElementById('rankName').value.trim(), G = RANK_GAMES[RK.game];
   if (!name) { rankMsg.textContent = '닉네임을 적어 주세요.'; return; }
   const bad = gbBad(name); if (bad) { rankMsg.textContent = bad; return; }
@@ -2877,7 +2893,10 @@ document.getElementById('rankForm').addEventListener('submit', async ev => {
     RK.score = null; document.getElementById('rankForm').style.display = 'none'; rankMsg.style.color = '#3d8f5a'; rankMsg.textContent = '기록을 올렸어요!'; rankRender();
   } catch (e) { rankMsg.style.color = ''; rankMsg.textContent = '올리지 못했어요. 잠시 후 다시 시도해 주세요.'; }
   btn.disabled = false; setTimeout(() => { rankMsg.style.color = ''; }, 3000);
-});
+};
+document.getElementById('rankForm').addEventListener('submit', ev => ev.preventDefault());
+document.getElementById('rankSend').addEventListener('click', () => rankFormSubmit());
+document.getElementById('rankName').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); rankFormSubmit(); } });
 addEventListener('keydown', e => {
   if ((e.code === 'Space' || e.code === 'Enter' || e.code === 'KeyF') && !e.repeat) { act(); e.preventDefault(); }
 });
@@ -2939,7 +2958,7 @@ function tick() {
   const df = dispFloor();
   const up = fp ? df + 1 : df;   // 1인칭에서는 위층 바닥이 천장이 되도록 한 층 더 보여요
   F2.visible = up >= 1; F3.visible = up >= 2; F4.visible = up >= 3; F5.visible = up >= 4; F6.visible = up >= 5;
-  if (floorEl.dataset.f !== String(df)) { floorEl.dataset.f = df; floorEl.textContent = (df === 5 ? '옥상' : (df + 1) + '층') + ' · 시안 v31'; }
+  if (floorEl.dataset.f !== String(df)) { floorEl.dataset.f = df; floorEl.textContent = (df === 5 ? '옥상' : (df + 1) + '층') + ' · 시안 v34'; }
   // 카메라
   const p = player.position;
   const look = overview ? new THREE.Vector3(6.3, df * 2.8, 8.4) : new THREE.Vector3(p.x, p.y + 0.6, p.z);
