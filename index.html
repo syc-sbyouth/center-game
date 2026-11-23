@@ -129,7 +129,7 @@
   #elevBtns button{padding:10px 0;border-radius:14px}
   #elevBtns button:disabled{opacity:.45;cursor:default}
   #loading{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#bfe6f5;color:#6b5236;font-size:22px;z-index:10;text-align:center;padding:20px}
-  @media (max-width:560px){#title b{font-size:17px}#hint{font-size:14px;bottom:160px}#note{display:none}button{font-size:14px;padding:6px 11px}}
+  @media (max-width:560px){#title b{font-size:17px}#hint{font-size:14px;bottom:160px}#note{font-size:11px;right:8px;bottom:8px;padding:4px 9px}button{font-size:14px;padding:6px 11px}}
 </style>
 <script type="importmap">
 {"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}
@@ -138,18 +138,19 @@
 <body>
 <div id="app"></div>
 <div id="labels"></div>
-<div id="title" class="card"><b>서울청년센터 성북</b><span id="floorName">1층 · v64</span></div>
+<div id="title" class="card"><b>서울청년센터 성북</b><span id="floorName">1층 · v65</span></div>
 <div id="btns">
   <button id="bShot">📷 사진</button>
   <button id="bEnv">🌤 계절·시간</button>
   <button id="bView">전체 보기</button>
   <button id="bFP">👀 1인칭</button>
+  <button id="bBag" class="on" style="display:none">🎒 가방</button>
   <button id="bLabel" class="on">이름표</button>
   <button id="bIn" aria-label="가까이">＋</button>
   <button id="bOut" aria-label="멀리">－</button>
 </div>
 <div id="hint" class="card">방향키·WASD로 걷고, 마우스를 끌어서 시점을 돌려보세요</div>
-<div id="note" class="card">소복이와 함께 센터를 둘러보세요!</div>
+<div id="note" class="card">해당 콘텐츠는 AI를 활용해 제작하였습니다.</div>
 <div id="joy"><div id="knob"></div></div>
 <button id="act" class="card"></button>
 <div id="info" class="card"><b id="infoT"></b><img id="infoImg" alt="" style="display:none"><p id="infoX"></p><button id="infoAct" style="display:none"></button><button id="infoClose">닫기</button></div>
@@ -2617,8 +2618,19 @@ function wearBag() {
     const mini = buildSobok2(); mini.scale.setScalar(0.22); mini.position.set(0.31, 0.02, 0.22); mini.rotation.y = 0.55; bagG.add(mini);
     const ring = new THREE.Mesh(new THREE.TorusGeometry(0.022, 0.006, 6, 16), mat('#f2b6c6')); ring.position.set(0.29, 0.17, 0.25); ring.rotation.y = 0.55; bagG.add(ring);
     bodyG.add(bagG);
+    bagG.visible = !bagOff;
   } catch (e) { bagG = null; }
+  bagBtn.style.display = bagG ? '' : 'none'; bagBtn.classList.toggle('on', !bagOff);
 }
+// 가방 켜기/끄기 버튼 (가방을 받은 뒤에만 보임, 선택은 이 기기에 기억)
+let bagOff = LS.get('sobok.bagOff') === '1';
+const bagBtn = document.getElementById('bBag');
+bagBtn.addEventListener('click', () => {
+  bagOff = !bagOff; LS.set('sobok.bagOff', bagOff ? '1' : '0');
+  if (bagG) bagG.visible = !bagOff;
+  bagBtn.classList.toggle('on', !bagOff);
+  bagBtn.blur();
+});
 function giveBag() {
   if (hasBag) return false;
   hasBag = true; LS.set('sobok.bag', '1'); wearBag(); return true;
@@ -3319,7 +3331,7 @@ function tick() {
   const df = dispFloor();
   const up = fp ? df + 1 : df;   // 1인칭에서는 위층 바닥이 천장이 되도록 한 층 더 보여요
   F2.visible = up >= 1; F3.visible = up >= 2; F4.visible = up >= 3; F5.visible = up >= 4; F6.visible = up >= 5;
-  if (floorEl.dataset.f !== String(df)) { floorEl.dataset.f = df; floorEl.textContent = (df === 5 ? '옥상' : (df + 1) + '층') + ' · v64'; }
+  if (floorEl.dataset.f !== String(df)) { floorEl.dataset.f = df; floorEl.textContent = (df === 5 ? '옥상' : (df + 1) + '층') + ' · v65'; }
   // 카메라
   const p = player.position;
   const look = overview ? new THREE.Vector3(6.3, df * 2.8, gz(8.4)) : new THREE.Vector3(p.x, p.y + 0.6, p.z);
