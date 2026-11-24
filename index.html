@@ -141,7 +141,7 @@
 <body>
 <div id="app"></div>
 <div id="labels"></div>
-<div id="title" class="card"><b>서울청년센터 성북</b><span id="floorName">1층 · v76</span></div>
+<div id="title" class="card"><b>서울청년센터 성북</b><span id="floorName">1층 · v79</span></div>
 <div id="btns">
   <button id="bShot">📷 사진</button>
   <button id="bEnv">🌤 계절·시간</button>
@@ -1740,7 +1740,7 @@ function campChair(x, z, c) {
   addCircle(x, z, 0.3);
 }
 beanbag(2.4, BD5 + 1.733, '#9cbf5a'); beanbag(4.0, BD5 + 1.733, '#e2853c');   // 발코니 창에서 조금 떨어지게
-[[1.9, '#e0a93a'], [2.75, '#e0a93a'], [3.6, '#2c3a5e'], [4.45, '#2c3a5e']].forEach(([x, c]) => campChair(x, BD5 + 3.333, c));
+[[1.9, '#e0a93a'], [2.75, '#e0a93a'], [3.6, '#2c3a5e'], [4.45, '#2c3a5e']].forEach(([x, c]) => campChair(x, BD5 + 4.0, c));   // 빈백에서 일어났을 때 지나갈 수 있게 간격을 넓힘
 function sideTable(x, z) { cyl(0.25, 0.25, 0.03, '#f8f8f6', x, 0.5, z); [[-0.15, -0.15], [0.15, 0.15], [-0.15, 0.15], [0.15, -0.15]].forEach(([dx, dz]) => box(0.02, 0.5, 0.02, '#f8f8f6', x + dx, 0, z + dz, { r: 0 })); addCircle(x, z, 0.27); }
 sideTable(1.0, 1.4); sideTable(5.5, 1.3);
 // 아치형 칸막이 (브릿지룸 ↔ 취식존)
@@ -1796,7 +1796,7 @@ const brickTex = canvasTex(256, 128, (g, w, h) => {
     g.fillStyle = pick(['#9c4a35', '#a8553c', '#8f4433', '#b05d43', '#93503a']); g.fillRect(x, y, 60, 12);
   }
 });
-brickTex.wrapS = brickTex.wrapT = THREE.RepeatWrapping; brickTex.repeat.set(1, 1);   // 크기는 아래 '옥상 벽돌 무늬 맞추기'에서 실제 길이로 맞춰요
+brickTex.wrapS = brickTex.wrapT = THREE.RepeatWrapping; brickTex.repeat.set(1, 1); brickTex.anisotropy = 8;   // 크기는 아래 '옥상 벽돌 무늬 맞추기'에서 실제 길이로 맞춰요
 const brickMat = new THREE.MeshStandardMaterial({ map: brickTex, roughness: 0.9 });
 const brickify = g => { g.noFade = true; const m = g.mats[0];   // 옥상 벽돌벽은 반투명하게 하지 않고 늘 벽돌로 보여요
   m.map = brickTex; if (m.color && m.color.set) m.color.set('#ffffff'); m.needsUpdate = true; return g; };
@@ -1917,9 +1917,7 @@ brickify(solidWall(GX1, SZ, GX1, 16.8, { color: '#ffffff' }));
 { const g = newGroup(), lid = gmat(g, '#8f8b85'); piece(g, 5.7, (SZ + 16.8) / 2, GX1 + 0.1, (SZ + 16.8) / 2, 2.76, 2.88, 16.8 - SZ + 0.2, lid); }   // 계단실 지붕 (가리면 투명)
 makeDoor(6.1, SZ, 7.0, SZ, { swing: -1, frame: '#1f2124', solid: '#24272b' });   // 옥상 문 (자동)
 floorPoly([[5.8, SZ], [7.1, SZ], [7.1, 16.8], [5.8, 16.8]], '#c9c5bd');
-brickify(solidWall(GX0, 13.8, 5.8, 13.8, { h: 1.5, color: '#ffffff' })); brickify(solidWall(GX0, 13.8, GX0, 16.8, { h: 1.5, color: '#ffffff' })); brickify(solidWall(GX0, 16.8, 5.8, 16.8, { h: 1.5, color: '#ffffff' }));
-{ const g = newGroup(), mesh = gmat(g, '#24262a', { transparent: true, opacity: 0.78, roughness: 0.6 });
-  piece(g, GX0, 13.8, 5.8, 13.8, 1.5, 2.6, 0.05, mesh); piece(g, GX0, 13.8, GX0, 16.8, 1.5, 2.6, 0.05, mesh); piece(g, GX0, 16.8, 5.8, 16.8, 1.5, 2.6, 0.05, mesh); }
+brickify(solidWall(GX0, 13.8, 5.8, 13.8, { h: 2.6, color: '#ffffff' })); brickify(solidWall(GX0, 13.8, GX0, 16.8, { h: 2.6, color: '#ffffff' })); brickify(solidWall(GX0, 16.8, 5.8, 16.8, { h: 2.6, color: '#ffffff' }));   // 실외기 칸: 까만 철망 대신 벽돌로
 // 계단실 바깥 벽 소품: 금연 · 안내문 · 스피커 · 조명 · 홈통 · CCTV
 const roofNote = canvasTex(512, 360, (g, w, h) => {
   g.fillStyle = '#3d9a78'; g.fillRect(0, 0, w, h); g.fillStyle = '#ffffff'; g.beginPath(); g.roundRect(20, 20, w - 40, h - 40, 30); g.fill();
@@ -2097,24 +2095,17 @@ try {
   ELEV.c = GZ(ELEV.c); ELEV.panels.forEach(arr => (arr || []).forEach(q => { q.z = q.m.position.z; }));
   GZ_ON = true;
 } catch (e) { console.warn('건물 세로 줄이기 실패 (원래 크기로 보여요)', e); }
-// 옥상 벽돌 무늬 맞추기: 면마다 실제 길이(가로 1m · 세로 0.5m = 무늬 한 장)로 다시 붙여서 늘어나거나 깨지지 않게
+// 옥상 벽돌 무늬 맞추기: 건물 바깥벽과 똑같은 벽돌 그림을, 면마다 실제 크기에 맞춰 따로 붙여요 (작게 깨지거나 늘어나지 않게)
 try {
-  scene.updateMatrixWorld(true);
-  const _p = new THREE.Vector3(), _n = new THREE.Vector3();
-  scene.traverse(m => {
-    if (!m.isMesh || !m.geometry || !m.geometry.attributes.uv || !m.geometry.attributes.normal) return;
-    const mats = Array.isArray(m.material) ? m.material : [m.material];
-    if (!mats.some(q => q && q.map === brickTex)) return;
-    m.geometry = m.geometry.clone();
-    const pos = m.geometry.attributes.position, nor = m.geometry.attributes.normal, uv = m.geometry.attributes.uv;
-    for (let i = 0; i < pos.count; i++) {
-      _p.fromBufferAttribute(pos, i).applyMatrix4(m.matrixWorld); _n.fromBufferAttribute(nor, i).transformDirection(m.matrixWorld);
-      const ax = Math.abs(_n.x), ay = Math.abs(_n.y), az = Math.abs(_n.z);
-      if (ay > 0.6) uv.setXY(i, _p.x / 1.0, _p.z / 0.5);
-      else if (ax > az) uv.setXY(i, _p.z / 1.0, _p.y / 0.5);
-      else uv.setXY(i, _p.x / 1.0, _p.y / 0.5);
-    }
-    uv.needsUpdate = true;
+  const faceMats = new Map();
+  const faceMat = (w, h) => { const k = Math.round(w * 20) + 'x' + Math.round(h * 20); if (!faceMats.has(k)) faceMats.set(k, new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.9, map: brickTexFor(w, h) })); return faceMats.get(k); };
+  const list = []; scene.traverse(m => { if (m.isMesh && m.geometry && m.geometry.type === 'BoxGeometry') { const mats = Array.isArray(m.material) ? m.material : [m.material]; if (mats.some(q => q && q.map === brickTex)) list.push(m); } });
+  list.forEach(m => {
+    m.geometry.computeBoundingBox(); const b = m.geometry.boundingBox, W = b.max.x - b.min.x, Hh = b.max.y - b.min.y, D = b.max.z - b.min.z;
+    const old = Array.isArray(m.material) ? m.material : [0, 1, 2, 3, 4, 5].map(() => m.material);
+    const sz = [[D, Hh], [D, Hh], [W, D], [W, D], [W, Hh], [W, Hh]];   // 상자 면 순서: 오른쪽·왼쪽·위·아래·앞·뒤
+    m.material = old.map((q, k) => q && q.map === brickTex ? faceMat(Math.max(0.05, sz[k][0]), Math.max(0.05, sz[k][1])) : q);
+    m.receiveShadow = false;
   });
 } catch (e) { console.warn('벽돌 무늬 맞추기 실패', e); }
 
@@ -3459,7 +3450,7 @@ function tick() {
   const df = dispFloor();
   const up = fp ? df + 1 : df;   // 1인칭에서는 위층 바닥이 천장이 되도록 한 층 더 보여요
   F2.visible = up >= 1; F3.visible = up >= 2; F4.visible = up >= 3; F5.visible = up >= 4; F6.visible = up >= 5;
-  if (floorEl.dataset.f !== String(df)) { floorEl.dataset.f = df; floorEl.textContent = (df === 5 ? '옥상' : (df + 1) + '층') + ' · v76'; }
+  if (floorEl.dataset.f !== String(df)) { floorEl.dataset.f = df; floorEl.textContent = (df === 5 ? '옥상' : (df + 1) + '층') + ' · v79'; }
   updateAutoCam(dt, df);
   // 카메라
   const p = player.position;
