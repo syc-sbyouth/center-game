@@ -141,7 +141,7 @@
 <body>
 <div id="app"></div>
 <div id="labels"></div>
-<div id="title" class="card"><b>서울청년센터 성북</b><span id="floorName">1층 · v69</span></div>
+<div id="title" class="card"><b>서울청년센터 성북</b><span id="floorName">1층 · v70</span></div>
 <div id="btns">
   <button id="bShot">📷 사진</button>
   <button id="bEnv">🌤 계절·시간</button>
@@ -531,8 +531,9 @@ function directory(here, x, z) {
 const tileTex = canvasTex(256, 192, (c, w, h) => { c.fillStyle = '#eee0c8'; c.fillRect(0, 0, w, h); c.strokeStyle = '#d6c6a8'; c.lineWidth = 2; for (let x = 0; x < w; x += 12) { c.beginPath(); c.moveTo(x, 0); c.lineTo(x, h); c.stroke(); } for (let y = 0; y < h; y += 32) { c.beginPath(); c.moveTo(0, y); c.lineTo(w, y); c.stroke(); } });
 // 익명 우편함 (앞 = 로컬 +z). stand = 바닥에 세우는 다리형
 const MAILBOXES = [];
+const TT_INFO_TEXT = '티톡이란? 청년지원매니저와 함께 청년정책에 대해 알아보고,\n청년지원매니저가 직접 준비한 콘텐츠를 함께 하며 편안하게\n대화를 나누는 프로그램입니다. 여러분이 원하는 티톡 주제를\n자유롭게 적어주세요! (예: 베이킹, 보드게임 등...)';
 const MAIL_INFO_TEXT = '센터를 이용한 후기나 바라는 점을 남겨 주세요.\n이름은 남지 않고, 청년지원매니저만 읽어요.\n여러분의 소중한 의견이 센터를 더 좋은 공간으로 만들어요.';
-function mailbox(cx, cz, rotY, y0, stand) {
+function mailbox(cx, cz, rotY, y0, stand, tt) {
   const g = grp(cx, cz, rotY); g.position.y = y0;
   const P = r => ({ parent: g, r }), ms = []; let b = 0;
   if (stand) {
@@ -544,9 +545,9 @@ function mailbox(cx, cz, rotY, y0, stand) {
   box(0.22, 0.022, 0.012, '#5b3a30', 0, b + 0.29, 0.151, P(0.004));      // 편지 넣는 구멍
   box(0.018, 0.17, 0.018, '#d9d6cf', 0.215, b + 0.1, -0.06, P(0.004));   // 깃발
   box(0.012, 0.07, 0.1, '#ffd36b', 0.224, b + 0.2, -0.02, P(0.004));
-  const f = CF; MAILBOXES.push({ f, x: g.position.x, z: g.position.z, y: f * 2.8 + y0 + b + 0.75 });
-  const it = addInfo(ms, '익명 우편함', MAIL_INFO_TEXT, g.position.x, g.position.z); it.r = 1.3;
-  it.action = { label: '✉️ 의견 남기기', fn: () => openMail(f) };
+  const f = CF, name = tt ? '티톡 우편함' : '익명 우편함'; MAILBOXES.push({ f, name, x: g.position.x, z: g.position.z, y: f * 2.8 + y0 + b + 0.75 });
+  const it = addInfo(ms, name, tt ? TT_INFO_TEXT : MAIL_INFO_TEXT, g.position.x, g.position.z); it.r = 1.3;
+  it.action = tt ? { label: '💬 티톡 주제 남기기', fn: () => openMail(f, true) } : { label: '✉️ 의견 남기기', fn: () => openMail(f) };
 }
 function woodCabinet(cx, cz, rotY, w) {
   const g = grp(cx, cz, rotY), wood = '#7a4428', P = { parent: g, r: 0.01 };
@@ -745,7 +746,7 @@ function plantPot(x, z, s = 1) {
   ball(0.3 * s, '#7cc46b', x, 0.6 * s, z); ball(0.2 * s, '#8fd17a', x + 0.12 * s, 0.82 * s, z + 0.05 * s);
 }
 roundTable(1.9, 6.2);
-mailbox(1.9, 6.2, Math.PI - Math.atan2(1.1, 2), 0.725);   // 화이트보드 글씨와 같은 쪽(보는 사람 쪽)을 보게   // 1층 익명 우편함 (원형 테이블 위)
+mailbox(1.9, 6.2, Math.PI - Math.atan2(1.1, 2), 0.725, false, true);   // 1층은 티톡 주제 우편함   // 화이트보드 글씨와 같은 쪽(보는 사람 쪽)을 보게   // 1층 익명 우편함 (원형 테이블 위)
 
 // 이동식 화이트보드 (안내 문구, 누르면 크게 보기)
 {
@@ -766,6 +767,28 @@ mailbox(1.9, 6.2, Math.PI - Math.atan2(1.1, 2), 0.725);   // 화이트보드 글
   const bp = new THREE.Mesh(new THREE.PlaneGeometry(W - 0.08, 1.24), wm); bp.position.set(0, 1.25, -0.03); bp.rotation.y = Math.PI; g.add(bp);
   const [ax, az] = rot(3.08, 8.04, -(W / 2 + 0.05), 0, a), [bx, bz] = rot(3.08, 8.04, W / 2 + 0.05, 0, a); addSeg(ax, az, bx, bz, 0.12);
   addInfo([wb, fp, bp], '안내', '센터 이곳저곳을 돌아다니며 탐방해보세요!\n\n이름표를 누르면 상세 설명이 나와요.\n\n각 층마다 미니 게임이 숨어 있어요.', X(3.08), Z(8.04)).r = 1.7;
+}
+
+// 티톡 화이트보드 (티톡 우편함 뒤, 안내 화이트보드 옆)
+{
+  const a = -Math.atan2(1.1, 2), cx = 3.08 - 1.95 * Math.cos(a), cz = 8.04 + 1.95 * Math.sin(a), g = grp(cx, cz, a), W = 1.6;
+  const wb = box(W, 1.3, 0.05, '#fbfbf8', 0, 0.6, 0, { parent: g, r: 0.02 });
+  box(W + 0.06, 0.05, 0.08, '#a6acb3', 0, 1.92, 0, { parent: g, r: 0.01 });
+  [-W / 2, W / 2].forEach(x => { box(0.05, 1.97, 0.05, '#a6acb3', x, 0, 0, { parent: g, r: 0 }); box(0.06, 0.05, 0.5, '#a6acb3', x, 0, 0, { parent: g, r: 0 }); });
+  const wt = canvasTex(820, 640, (c, w, h) => {
+    c.fillStyle = '#fbfbf8'; c.fillRect(0, 0, w, h); c.textAlign = 'center'; c.textBaseline = 'middle';
+    c.fillStyle = '#f2a33a'; c.beginPath(); c.roundRect(w / 2 - 110, 70, 220, 74, 37); c.fill();
+    c.fillStyle = '#ffffff'; c.font = '50px Jua, sans-serif'; c.fillText('티톡', w / 2, 109);
+    c.fillStyle = '#4f7fd0'; c.font = '62px Jua, sans-serif'; c.fillText('2027년에 여러분이', w / 2, 255); c.fillText('하고 싶은 티톡 주제를', w / 2, 345);
+    c.fillStyle = '#e0779a'; c.fillText('적어주세요!', w / 2, 440);
+    [['#ffe08a', 60, 540], ['#a8d8f0', 700, 540], ['#c9e8b8', 380, 560]].forEach(([col, x, y]) => { c.fillStyle = col; c.fillRect(x, y, 60, 46); });
+  });
+  const wm = new THREE.MeshStandardMaterial({ map: wt, roughness: 0.6 });
+  const fp = new THREE.Mesh(new THREE.PlaneGeometry(W - 0.08, 1.24), wm); fp.position.set(0, 1.25, 0.03); g.add(fp);
+  const bp = new THREE.Mesh(new THREE.PlaneGeometry(W - 0.08, 1.24), wm); bp.position.set(0, 1.25, -0.03); bp.rotation.y = Math.PI; g.add(bp);
+  const [ax, az] = rot(cx, cz, -(W / 2 + 0.05), 0, a), [bx, bz] = rot(cx, cz, W / 2 + 0.05, 0, a); addSeg(ax, az, bx, bz, 0.12);
+  const it = addInfo([wb, fp, bp], '티톡 우편함', TT_INFO_TEXT, X(cx), Z(cz)); it.r = 1.6;
+  it.action = { label: '💬 티톡 주제 남기기', fn: () => openMail(0, true) };
 }
 
 // 책장 (격자형, 나무)
@@ -1603,7 +1626,6 @@ makeSlideDoor(10.6, BZ, 11.5, BZ, BZ + 0.17, '#8b4a2b');   // 탕비실 미닫�
 floorPoly([[6.5, BZ], [12.6, BZ], [12.6, 13.8], [6.5, 13.8]], '#e0d6c6');
 plane(13.8 - BZ - 0.2, 2.5, new THREE.MeshStandardMaterial({ color: '#7a4428', roughness: 0.7 }), 6.64, 1.25, (BZ + 13.8) / 2, Math.PI / 2);   // 나무 벽 (안쪽)
 const fridge5 = box(0.8, 1.85, 0.7, '#5f656c', 6.98, 0, 13.3, { collide: true, r: 0.03 });           // 냉장고
-addInfo([fridge5], '냉장고', '센터 이용자는 사용이 어려워요.', 6.98, 12.6);
 box(0.02, 1.1, 0.03, '#c7ccd1', 7.3, 0.6, 12.94, { r: 0 }); box(0.78, 0.01, 0.01, '#3a3d42', 6.98, 1.15, 12.95, { r: 0 });
 woodCabinet(9.9, 13.37, Math.PI, 5.0);                                                  // 조리대 (위장·타일·아래장)
 const CT = 0.91, KZ = 13.35;
@@ -1952,6 +1974,8 @@ ROOT = scene; CF = 0;
 /* ---------- 이름표 ---------- */
 const labelWrap = document.getElementById('labels');
 const LABEL_INFO_EXTRA = {
+  '2|종합상담실': { text: '청년지원매니저와 청년정책 종합상담이 이루어지는 곳이에요.\n최대 3회, 온라인으로도 상담 가능해요.\n아래 버튼을 클릭하면 상세 설명이 나와요.\n\n(TIP: 서울청년센터 성북 탐방 게임을 통해 신청했다고 작성해주시면 센터 굿즈를 드려요!)',
+    action: { label: '📝 상담 신청하기', fn: () => window.open('https://blog.naver.com/syc_sbyouth/223927418133', '_blank', 'noopener') } },
   '3|거울': { text: '멀티룸 한쪽 벽을 채운 큰 거울이에요.\n거울 앞에서 소복이와 춤춰 볼까요?', action: { label: '🪞 미니게임: 거울 댄스', fn: () => openDanceGame() } },
   '4|전자레인지': { text: '자유롭게 이용이 가능해요.', action: { label: '🍱 미니게임: 전자레인지 타이밍 맞추기', fn: () => openMicrowaveGame() } },
 };
@@ -1966,23 +1990,21 @@ const LABEL_INFO = {
   '1|회의실': "'서울특별시 공공서비스예약' 혹은 당일 예약 후 이용 가능해요. (2~6명)\n간단한 다과, 음료는 취식이 가능해요.",
   '2|화상면접실 1': "'서울특별시 공공서비스예약' 혹은 당일 예약 후 이용 가능해요. (1명)\n화상 면접에 필요한 장비가 갖춰져 있어요.\n취식이 불가해요.",
   '2|화상면접실 2': "'서울특별시 공공서비스예약' 혹은 당일 예약 후 이용 가능해요. (1명)\n화상 면접에 필요한 장비가 갖춰져 있어요.\n취식이 불가해요.",
-  '2|종합상담실': '청년지원매니저와의 청년 정책 종합 상담이 이루어지는 곳이에요.\n다양한 분야를 상담할 수 있어요. (최대 3회, 온라인 상담 가능)',
   '3|멀티룸': '여러 강의와 프로그램이 주로 진행되는 곳이에요.\n현재 어떤 프로그램이 진행 중인지 궁금하다면, 서울청년센터 성북의 SNS를 확인해보세요!',
   '4|브릿지룸': '청년들이 편하게 쉬어갈 수 있는 공간이에요.',
   '4|취식존': '음식을 자유롭게 먹을 수 있는 곳이에요.',
   '4|음식물 처리기': '먹고 남은 음식물은 이곳에 버려주세요.\n※ 국물은 개수대에 버려주세요!',
   '4|전자레인지': '자유롭게 이용이 가능해요.',
-  '4|냉장고': '센터 이용자는 사용이 어려워요.',
 };
 const labels = [['미디어월', 0.6, 2.95, 3.6, 0], ['책장 라운지', 1.4, 2.6, 11.56, 0, 2], ['입구', 12.0, 1.3, 2.0, 0], ['안내 데스크', 8.7, 1.7, 7.6, 0], ['사무실', 12.8, 2.0, 8.1, 0], ['계단 · 2층으로', 8.4, 2.4, 18.7, 0, 1], ['엘리베이터', 1.2, 3.0, 15.6, 0, 2],
   ['회의실', 2.8, 4.9, 3.4, 1], ['남자 화장실', 4.0, 5.3, 9.04, 1, 2], ['여자 화장실', 4.0, 5.3, 10.92, 1, 2], ['창가 바 테이블', 8.3, 4.3, 0.5, 1, 1], ['라운지 테이블', 8.2, 4.3, 5.55, 1, 1], ['프린터·컴퓨터', 7.4, 4.6, 15.9, 1, 1], ['정수기·커피머신', 9.1, 4.7, 15.9, 1, 1], ['개수대', 11.85, 4.5, 15.9, 1, 1], ['텀블러 세척기', 15.4, 5.1, 10.95, 1], ['분리수거함', 4.0, 4.2, 13.75, 1, 2], ['계단 · 3층으로', 8.4, 4.4, 18.7, 1, 1], ['계단 · 1층으로', 8.4, 3.6, 17.3, 1, 1], ['엘리베이터', 1.2, 5.8, 15.6, 1, 2],
   ['종합상담실', 2.8, 7.9, 2.4, 2, 1], ['화상면접실 2', 10.1, 8.0, mapZ(7.8) / 4, 2, 2], ['화상면접실 1', 10.1, 8.0, mapZ(7.8) * 0.75, 2, 2], ['3층 사무실', 9.6, 8.7, 12.0, 2, 1], ['남자 장애인 화장실', 4.1, 8.3, 9.75, 2, 2], ['여자 장애인 화장실', 4.1, 8.3, 12.75, 2, 2], ['계단 · 4층으로', 8.4, 7.2, 18.7, 2, 1], ['계단 · 2층으로', 8.4, 7.0, 17.3, 2, 1], ['엘리베이터', 1.2, 8.6, 15.6, 2, 2],
   ['멀티룸', 6.9, 10.9, 4.6, 3, 2], ['여자 화장실', 4.0, 10.7, 12.6, 3, 2], ['계단 · 3층으로', 8.4, 9.2, 17.3, 3, 1], ['계단 · 5층으로', 8.4, 10.0, 18.7, 3, 1], ['거울', 0.6, 11.0, 3.95, 3, 2], ['엘리베이터', 1.2, 11.4, 15.6, 3, 2],
-  ['브릿지룸', 3.0, 13.6, 4.6, 4, 2], ['취식존', 9.3, 13.4, 3.0, 4, 2], ['탕비실', 9.6, 13.6, 11.4, 4, 2], ['음식물 처리기', 11.4, 12.95, 13.35, 4, 2, 'pantry'], ['전자레인지', 10.6, 12.6, 13.35, 4, 2, 'pantry'], ['냉장고', 6.98, 13.45, 13.3, 4, 2, 'pantry'], ['남자 화장실', 4.0, 13.5, 12.9, 4, 2], ['계단 · 4층으로', 8.4, 12.0, 17.3, 4, 1], ['계단 · 옥상으로', 8.4, 12.8, 18.7, 4, 1], ['엘리베이터', 1.2, 14.2, 15.6, 4, 2],
-  ['옥상정원', 8.2, 16.4, 11.0, 5, 2], ['방명록', 8.55, 15.25, 12.98, 5, 2], ['계단 · 5층으로', 8.4, 14.8, 17.3, 5, 1], ...MAILBOXES.map(m => ['익명 우편함', m.x, m.y, m.z, m.f, 2])]
+  ['브릿지룸', 3.0, 13.6, 4.6, 4, 2], ['취식존', 9.3, 13.4, 3.0, 4, 2], ['탕비실', 9.6, 13.6, 11.4, 4, 2], ['음식물 처리기', 11.4, 12.95, 13.35, 4, 2, 'pantry'], ['전자레인지', 10.6, 12.6, 13.35, 4, 2, 'pantry'], ['남자 화장실', 4.0, 13.5, 12.9, 4, 2], ['계단 · 4층으로', 8.4, 12.0, 17.3, 4, 1], ['계단 · 옥상으로', 8.4, 12.8, 18.7, 4, 1], ['엘리베이터', 1.2, 14.2, 15.6, 4, 2],
+  ['옥상정원', 8.2, 16.4, 11.0, 5, 2], ['방명록', 8.55, 15.25, 12.98, 5, 2], ['계단 · 5층으로', 8.4, 14.8, 17.3, 5, 1], ...MAILBOXES.map(m => [m.name, m.x, m.y, m.z, m.f, 2])]
   .map(([t, x, y, z, f, raw, only]) => { const el = document.createElement('div'); el.className = t === '엘리베이터' ? 'lbl hot' : 'lbl'; el.textContent = t; labelWrap.appendChild(el);
-    const desc = LABEL_INFO_EXTRA[f + '|' + t] || LABEL_INFO[f + '|' + t], special = t === '익명 우편함' || t === '엘리베이터' || t === '방명록' || t === '옥상정원' || t === '미디어월' || t === '텀블러 세척기' || t.startsWith('화상면접실');
-    if (desc || special) { el.className += ' click'; el.addEventListener('click', e => { e.stopPropagation(); if (t === '익명 우편함') showInfo({ title: t, text: MAIL_INFO_TEXT, action: { label: '✉️ 의견 남기기', fn: () => openMail(f) } }); else if (t === '방명록') openGuestbook(); else if (t === '옥상정원') showInfo(ROOF_NOTE); else if (t === '미디어월') openPromo(); else if (t === '텀블러 세척기') showInfo(WASHER_INFO); else if (t.startsWith('화상면접실')) showInfo({ title: t, text: desc, action: INTERVIEW_INFO.action }); else if (t === '엘리베이터') showInfo({ title: '엘리베이터', text: elevDesc() }); else showInfo(typeof desc === 'object' ? { title: t, ...desc } : { title: t, text: desc }); }); }
+    const desc = LABEL_INFO_EXTRA[f + '|' + t] || LABEL_INFO[f + '|' + t], special = t === '익명 우편함' || t === '티톡 우편함' || t === '티톡 화이트보드' || t === '엘리베이터' || t === '방명록' || t === '옥상정원' || t === '미디어월' || t === '텀블러 세척기' || t.startsWith('화상면접실');
+    if (desc || special) { el.className += ' click'; el.addEventListener('click', e => { e.stopPropagation(); if (t === '익명 우편함') showInfo({ title: t, text: MAIL_INFO_TEXT, action: { label: '✉️ 의견 남기기', fn: () => openMail(f) } }); else if (t === '티톡 우편함' || t === '티톡 화이트보드') showInfo({ title: '티톡 우편함', text: TT_INFO_TEXT, action: { label: '💬 티톡 주제 남기기', fn: () => openMail(f, true) } }); else if (t === '방명록') openGuestbook(); else if (t === '옥상정원') showInfo(ROOF_NOTE); else if (t === '미디어월') openPromo(); else if (t === '텀블러 세척기') showInfo(WASHER_INFO); else if (t.startsWith('화상면접실')) showInfo({ title: t, text: desc, action: INTERVIEW_INFO.action }); else if (t === '엘리베이터') showInfo({ title: '엘리베이터', text: elevDesc() }); else showInfo(typeof desc === 'object' ? { title: t, ...desc } : { title: t, text: desc }); }); }
     return { t, el, f, only, p: new THREE.Vector3(raw ? x : mapX(x), y, raw === 2 ? z : mapZ(z)) }; });
 let showLabels = true;
 
@@ -3106,9 +3128,14 @@ addEventListener('keyup', e => { if (DG.open) e.stopImmediatePropagation(); }, t
 const mailEl = document.getElementById('mail'), mailText = document.getElementById('mailText'), mailMsg = document.getElementById('mailMsg');
 const MAIL = { floor: 0, kind: '후기', cool: 60 };
 const floorName = f => f === 5 ? '옥상' : (f + 1) + '층';
-async function openMail(f) {
+const MAIL_SUB = document.querySelector('#mail .mailSub').innerHTML;
+async function openMail(f, tt) {
   infoEl.style.display = 'none'; keys.clear(); await gbInit();
-  MAIL.floor = f; document.getElementById('mailT').textContent = '✉️ 익명 우편함 · ' + floorName(f);
+  MAIL.floor = f; MAIL.tt = !!tt;
+  document.getElementById('mailT').textContent = tt ? '💬 티톡 우편함' : '✉️ 익명 우편함 · ' + floorName(f);
+  document.querySelector('#mail .mailSub').innerHTML = tt ? '<b>티톡이란?</b> 청년지원매니저와 함께 청년정책에 대해 알아보고, 청년지원매니저가 직접 준비한 콘텐츠를 함께 하며 편안하게 대화를 나누는 프로그램입니다.<br>2027년에 여러분이 원하는 티톡 주제를 자유롭게 적어주세요! (예: 베이킹, 보드게임 등...)<br>이름은 남지 않고, 청년지원매니저만 읽어요.' : MAIL_SUB;
+  document.getElementById('mailKinds').style.display = tt ? 'none' : '';
+  mailText.placeholder = tt ? '예) 베이킹, 보드게임, 자취 요리…' : '예) 화상면접실 덕분에 면접 준비를 잘했어요!';
   document.getElementById('mailMode').textContent = GB.mode === 'live' ? '' : '연습 모드예요. 지금은 이 기기에만 저장돼요. (저장 공간을 연결하면 센터로 전달돼요)';
   mailAdminUI();
   document.getElementById('mailList').innerHTML = ''; mailMsg.textContent = ''; mailEl.classList.add('open');
@@ -3131,7 +3158,7 @@ document.getElementById('mailSend').addEventListener('click', async () => {
   if (wait > 0) { mailMsg.textContent = wait + '초 뒤에 다시 보낼 수 있어요.'; return; }
   const btn = document.getElementById('mailSend'); btn.disabled = true;
   try {
-    const doc = { floor: MAIL.floor + 1, kind: MAIL.kind, text: text.slice(0, 500) };
+    const doc = { floor: MAIL.floor + 1, kind: MAIL.tt ? '티톡' : MAIL.kind, text: text.slice(0, 500) };
     if (GB.mode === 'live') { const { fsM, db } = GB.fb; const b = fsM.writeBatch(db); b.set(fsM.doc(db, 'limits_mail', GB.uid), { at: fsM.serverTimestamp() }); b.set(fsM.doc(fsM.collection(db, 'mailbox')), { ...doc, uid: GB.uid, createdAt: fsM.serverTimestamp() }); await b.commit(); }
     else { let L = []; try { L = JSON.parse(LS.get('sobok.mailbox') || '[]'); } catch (e) {} L.unshift({ ...doc, at: Date.now() }); LS.set('sobok.mailbox', JSON.stringify(L.slice(0, 50))); }
     LS.set('sobok.mailLast', String(Date.now())); mailText.value = ''; document.getElementById('mailCount').textContent = '0 / 500';
@@ -3399,7 +3426,7 @@ function tick() {
   const df = dispFloor();
   const up = fp ? df + 1 : df;   // 1인칭에서는 위층 바닥이 천장이 되도록 한 층 더 보여요
   F2.visible = up >= 1; F3.visible = up >= 2; F4.visible = up >= 3; F5.visible = up >= 4; F6.visible = up >= 5;
-  if (floorEl.dataset.f !== String(df)) { floorEl.dataset.f = df; floorEl.textContent = (df === 5 ? '옥상' : (df + 1) + '층') + ' · v69'; }
+  if (floorEl.dataset.f !== String(df)) { floorEl.dataset.f = df; floorEl.textContent = (df === 5 ? '옥상' : (df + 1) + '층') + ' · v70'; }
   updateAutoCam(dt, df);
   // 카메라
   const p = player.position;
