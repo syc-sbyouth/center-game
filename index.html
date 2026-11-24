@@ -141,7 +141,7 @@
 <body>
 <div id="app"></div>
 <div id="labels"></div>
-<div id="title" class="card"><b>서울청년센터 성북</b><span id="floorName">1층 · v72</span></div>
+<div id="title" class="card"><b>서울청년센터 성북</b><span id="floorName">1층 · v73</span></div>
 <div id="btns">
   <button id="bShot">📷 사진</button>
   <button id="bEnv">🌤 계절·시간</button>
@@ -1792,7 +1792,7 @@ const brickTex = canvasTex(256, 128, (g, w, h) => {
     g.fillStyle = pick(['#9c4a35', '#a8553c', '#8f4433', '#b05d43', '#93503a']); g.fillRect(x, y, 60, 12);
   }
 });
-brickTex.wrapS = brickTex.wrapT = THREE.RepeatWrapping; brickTex.repeat.set(3, 2);
+brickTex.wrapS = brickTex.wrapT = THREE.RepeatWrapping; brickTex.repeat.set(1, 1);   // 크기는 아래 '옥상 벽돌 무늬 맞추기'에서 실제 길이로 맞춰요
 const brickMat = new THREE.MeshStandardMaterial({ map: brickTex, roughness: 0.9 });
 const brickify = g => { const m = g.mats[0]; m.map = brickTex; if (m.color && m.color.set) m.color.set('#ffffff'); m.needsUpdate = true; return g; };
 const GX0 = 4.0, GX1 = 12.6, GZ0 = 8.0, SZ = 13.4;   // 옥상정원 범위 (가로 8.6 × 세로 8.8, 정사각형에 가깝게) / 계단실 북쪽 벽
@@ -2092,6 +2092,26 @@ try {
   ELEV.c = GZ(ELEV.c); ELEV.panels.forEach(arr => (arr || []).forEach(q => { q.z = q.m.position.z; }));
   GZ_ON = true;
 } catch (e) { console.warn('건물 세로 줄이기 실패 (원래 크기로 보여요)', e); }
+// 옥상 벽돌 무늬 맞추기: 면마다 실제 길이(가로 1m · 세로 0.5m = 무늬 한 장)로 다시 붙여서 늘어나거나 깨지지 않게
+try {
+  scene.updateMatrixWorld(true);
+  const _p = new THREE.Vector3(), _n = new THREE.Vector3();
+  scene.traverse(m => {
+    if (!m.isMesh || !m.geometry || !m.geometry.attributes.uv || !m.geometry.attributes.normal) return;
+    const mats = Array.isArray(m.material) ? m.material : [m.material];
+    if (!mats.some(q => q && q.map === brickTex)) return;
+    m.geometry = m.geometry.clone();
+    const pos = m.geometry.attributes.position, nor = m.geometry.attributes.normal, uv = m.geometry.attributes.uv;
+    for (let i = 0; i < pos.count; i++) {
+      _p.fromBufferAttribute(pos, i).applyMatrix4(m.matrixWorld); _n.fromBufferAttribute(nor, i).transformDirection(m.matrixWorld);
+      const ax = Math.abs(_n.x), ay = Math.abs(_n.y), az = Math.abs(_n.z);
+      if (ay > 0.6) uv.setXY(i, _p.x / 1.0, _p.z / 0.5);
+      else if (ax > az) uv.setXY(i, _p.z / 1.0, _p.y / 0.5);
+      else uv.setXY(i, _p.x / 1.0, _p.y / 0.5);
+    }
+    uv.needsUpdate = true;
+  });
+} catch (e) { console.warn('벽돌 무늬 맞추기 실패', e); }
 
 /* ---------- 소복이 (플레이어) ---------- */
 const player = new THREE.Group(); scene.add(player);
@@ -2633,10 +2653,20 @@ document.getElementById('shotSave').onclick = () => {
     document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
   }, 'image/png');
 };
+function setWallOpacity(full) {   // 사진 찍는 순간에는 반투명해진 벽·창살을 원래대로 보여줘요
+  for (const g of wallGroups) {
+    const c = full ? 1 : g.cur;
+    for (const m of g.mats) {
+      const op = m.userData.base * c, tr = m.userData.glass || op < 0.995;
+      if (m.transparent !== tr) { m.transparent = tr; m.depthWrite = !tr; m.needsUpdate = true; }
+      m.opacity = op;
+    }
+  }
+}
 document.getElementById('bShot').onclick = () => {
-  renderer.render(scene, camera);
+  setWallOpacity(true); renderer.render(scene, camera);
   const src = renderer.domElement, c = document.createElement('canvas'); c.width = src.width; c.height = src.height;
-  const g = c.getContext('2d'); g.drawImage(src, 0, 0);
+  const g = c.getContext('2d'); g.drawImage(src, 0, 0); setWallOpacity(false);
   const s = Math.max(1, c.width / 900), d = new Date(), txt = '서울청년센터 성북 탐방 · ' + d.getFullYear() + '.' + String(d.getMonth() + 1).padStart(2, '0') + '.' + String(d.getDate()).padStart(2, '0');
   g.font = Math.round(18 * s) + 'px Jua, sans-serif'; const tw = g.measureText(txt).width;
   g.fillStyle = 'rgba(255,253,246,.88)'; g.beginPath(); g.roundRect(c.width - tw - 34 * s, c.height - 44 * s, tw + 24 * s, 32 * s, 16 * s); g.fill();
@@ -3424,7 +3454,7 @@ function tick() {
   const df = dispFloor();
   const up = fp ? df + 1 : df;   // 1인칭에서는 위층 바닥이 천장이 되도록 한 층 더 보여요
   F2.visible = up >= 1; F3.visible = up >= 2; F4.visible = up >= 3; F5.visible = up >= 4; F6.visible = up >= 5;
-  if (floorEl.dataset.f !== String(df)) { floorEl.dataset.f = df; floorEl.textContent = (df === 5 ? '옥상' : (df + 1) + '층') + ' · v72'; }
+  if (floorEl.dataset.f !== String(df)) { floorEl.dataset.f = df; floorEl.textContent = (df === 5 ? '옥상' : (df + 1) + '층') + ' · v73'; }
   updateAutoCam(dt, df);
   // 카메라
   const p = player.position;
