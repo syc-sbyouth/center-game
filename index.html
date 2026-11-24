@@ -17,6 +17,9 @@
   button:active{transform:translateY(2px);box-shadow:0 1px 0 #e6d2a8}
   button.on{background:#ffe9a8}
   #hint{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);padding:8px 18px;font-size:16px;transition:opacity .8s;white-space:nowrap}
+  #elevGuide{position:fixed;left:0;top:0;display:none;z-index:4;pointer-events:none;background:#ffe08a;color:#5a3d1c;border:3px solid #f2b73c;border-radius:16px;padding:9px 16px;font-size:17px;font-weight:bold;white-space:pre-line;text-align:center;max-width:300px;box-shadow:0 4px 0 #d9a032,0 6px 18px rgba(0,0,0,.18);animation:egBob 1.2s ease-in-out infinite}
+  #elevGuide:after{content:'';position:absolute;left:50%;bottom:-13px;transform:translateX(-50%);border:10px solid transparent;border-top-color:#f2b73c;border-bottom:0}
+  @keyframes egBob{0%,100%{margin-top:0}50%{margin-top:-7px}}
   #note{position:fixed;right:14px;bottom:14px;padding:6px 12px;font-size:13px;color:#a98a62}
   #labels{position:fixed;inset:0;pointer-events:none}
   .lbl{position:absolute;transform:translate(-50%,-100%);background:#fffdf6;color:#6b5236;border:2px solid #f3e3c3;border-radius:999px;padding:3px 10px;font-size:14px;white-space:nowrap;box-shadow:0 2px 0 #e6d2a8}
@@ -138,7 +141,7 @@
 <body>
 <div id="app"></div>
 <div id="labels"></div>
-<div id="title" class="card"><b>서울청년센터 성북</b><span id="floorName">1층 · v65</span></div>
+<div id="title" class="card"><b>서울청년센터 성북</b><span id="floorName">1층 · v69</span></div>
 <div id="btns">
   <button id="bShot">📷 사진</button>
   <button id="bEnv">🌤 계절·시간</button>
@@ -150,6 +153,7 @@
   <button id="bOut" aria-label="멀리">－</button>
 </div>
 <div id="hint" class="card">방향키·WASD로 걷고, 마우스를 끌어서 시점을 돌려보세요</div>
+<div id="elevGuide"></div>
 <div id="note" class="card">해당 콘텐츠는 AI를 활용해 제작하였습니다.</div>
 <div id="joy"><div id="knob"></div></div>
 <button id="act" class="card"></button>
@@ -826,7 +830,6 @@ const posterTexes = Array.from({ length: 10 }, () => canvasTex(256, 360, (g, w, 
   g.fillStyle = '#9aa0aa'; for (let i = 0; i < 4; i++) g.fillRect(24, 280 + i * 16, w * (0.45 + rnd() * 0.35), 8);
 }));
 const poster = (x, y, z, rotY, w = 0.5, h = 0.7) => plane(w, h, new THREE.MeshStandardMaterial({ map: pick(posterTexes), roughness: 0.9 }), x, y, z, rotY);
-poster(8.6, 1.5, 19.36, Math.PI, 0.5, 0.7); poster(7.2, 1.5, 19.36, Math.PI, 0.5, 0.7);
 
 /* ---------- 사무실 ---------- */
 function desk(x, z, w, d) {
@@ -926,8 +929,35 @@ for (let i = 0; i < 8; i++) {
 bar([7.35, 0.97, 18.11], [9.6, 2.3, 18.11], 0.022, '#5d6470');
 bar([7.35, 0.175, 18.11], [7.35, 0.97, 18.11], 0.02, '#5d6470');
 bar([9.6, 2.35, 16.68], [7.35, 3.75, 16.68], 0.022, '#5d6470');
-[[8.0, 1.65], [9.1, 2.25]].forEach(([x, y]) => poster(x, y, 18.085, 0, 0.5, 0.7));      // 계단 벽 포스터 (사진)
-poster(10.5, 2.25, 16.635, 0, 0.5, 0.7);
+// 1~2층 계단: 분야별 팻말 + 아래에 포스터 (팻말 디자인 시안 그대로, 세부 항목은 줄로만)
+{
+  const signTex = (title, accent, panel, line, rows) => canvasTex(1024, 362, (g, w, h) => {
+    g.fillStyle = '#ffffff'; g.fillRect(0, 0, w, h);
+    const p = 18, lw = Math.round((w - p * 2) * 0.63);
+    g.fillStyle = accent; g.fillRect(p, p, lw, h - p * 2);
+    g.fillStyle = panel; g.fillRect(p + lw, p, w - p * 2 - lw, h - p * 2);
+    g.fillStyle = '#ffffff'; g.font = '128px Jua, sans-serif'; g.textBaseline = 'middle';
+    let fs = 128; while (g.measureText(title).width > lw - 64 && fs > 60) { fs -= 4; g.font = fs + 'px Jua, sans-serif'; }
+    g.fillText(title, p + 36, h / 2 + 6);
+    const x0 = p + lw + 34, x1 = w - p - 34, top = h / 2 - (rows - 1) * 34;
+    for (let i = 0; i < rows; i++) {
+      const y = top + i * 68;
+      g.fillStyle = '#c3ccce'; g.fillRect(x0, y - 9, (x1 - x0) * (0.55 + 0.3 * ((i * 37) % 10) / 10), 18);
+      if (i < rows - 1) { g.fillStyle = line; g.fillRect(x0, y + 28, x1 - x0, 3); }
+    }
+  });
+  const SIGNS = [   // [제목, 진한 색, 연한 색, 구분선, 줄 수, x, 팻말 높이, z, 포스터 높이, 방향]
+    ['문화·활동', '#F1B037', '#FBF6F0', '#e6dccd', 4, 8.45, 2.3, 19.365, 1.74, Math.PI],          // 첫 번째 계단 옆 남쪽 벽
+    ['진로·교육', '#0E7C86', '#eef6f6', '#c5dcdd', 4, 11.265, 2.52, 18.0, 1.95, -Math.PI / 2],   // 계단참 끝 벽
+    ['건강·생활', '#D4502B', '#fcf0eb', '#efd3c8', 4, 10.5, 2.6, 16.635, 2.02, 0],
+    ['기타', '#4A5A5E', '#f0f3f3', '#d3dadb', 2, 9.2, 2.6, 16.635, 2.2, 0]];
+  SIGNS.forEach(([t, a, pc, ln, rows, x, sy, z, py, ry]) => {
+    const nx = Math.sin(ry) * 0.004, nz = Math.cos(ry) * 0.004, ax = Math.cos(ry), az = -Math.sin(ry);
+    plane(0.86, 0.304, new THREE.MeshStandardMaterial({ map: signTex(t, a, pc, ln, rows), roughness: 0.7 }), x + nx, sy, z + nz, ry);
+    [-0.21, 0.21].forEach(d => poster(x + ax * d, py, z + az * d, ry, 0.36, 0.5));
+  });
+  [[8.0, 1.65], [9.1, 2.25]].forEach(([x, y]) => poster(x, y, 18.085, 0, 0.5, 0.7));      // 계단 가운데 벽 포스터 (원래대로)
+}
 solidWall(11.4, 16.5, 11.4, 19.5, { color: '#c9ccd0' });                                    // 계단 옆 닫힌 공간 (3층은 창고)
 box(1.2, 0.1, 3.0, '#c9c5bd', 12.0, 2.6, 18.0, { r: 0 });
 // 계단 위에서 쓰는 벽 (모든 층 공통)
@@ -1953,7 +1983,7 @@ const labels = [['미디어월', 0.6, 2.95, 3.6, 0], ['책장 라운지', 1.4, 2
   .map(([t, x, y, z, f, raw, only]) => { const el = document.createElement('div'); el.className = t === '엘리베이터' ? 'lbl hot' : 'lbl'; el.textContent = t; labelWrap.appendChild(el);
     const desc = LABEL_INFO_EXTRA[f + '|' + t] || LABEL_INFO[f + '|' + t], special = t === '익명 우편함' || t === '엘리베이터' || t === '방명록' || t === '옥상정원' || t === '미디어월' || t === '텀블러 세척기' || t.startsWith('화상면접실');
     if (desc || special) { el.className += ' click'; el.addEventListener('click', e => { e.stopPropagation(); if (t === '익명 우편함') showInfo({ title: t, text: MAIL_INFO_TEXT, action: { label: '✉️ 의견 남기기', fn: () => openMail(f) } }); else if (t === '방명록') openGuestbook(); else if (t === '옥상정원') showInfo(ROOF_NOTE); else if (t === '미디어월') openPromo(); else if (t === '텀블러 세척기') showInfo(WASHER_INFO); else if (t.startsWith('화상면접실')) showInfo({ title: t, text: desc, action: INTERVIEW_INFO.action }); else if (t === '엘리베이터') showInfo({ title: '엘리베이터', text: elevDesc() }); else showInfo(typeof desc === 'object' ? { title: t, ...desc } : { title: t, text: desc }); }); }
-    return { el, f, only, p: new THREE.Vector3(raw ? x : mapX(x), y, raw === 2 ? z : mapZ(z)) }; });
+    return { t, el, f, only, p: new THREE.Vector3(raw ? x : mapX(x), y, raw === 2 ? z : mapZ(z)) }; });
 let showLabels = true;
 
 
@@ -2046,6 +2076,7 @@ try {
 /* ---------- 소복이 (플레이어) ---------- */
 const player = new THREE.Group(); scene.add(player);
 const bodyG = new THREE.Group(); player.add(bodyG);
+const SOBOK_SCALE = 1.18; bodyG.scale.setScalar(SOBOK_SCALE);   // 소복이 키 키우기 (키가 작다는 의견 반영)
 // 소복이 (앞·옆·뒤 3D 그림에 맞춘 모델): 둥근 몸 + 갈색 등·머리 + 크림색 얼굴·배(하트 모양 이마선) + 날개 + 하트 꼬리
 const SB = { cream: '#fbefcf', brown: '#a8754f', dark: '#4a3226', eye: '#2b211c', blush: '#f4a37c' };
 const sobok = new THREE.Group(); sobok.position.y = 0.4; bodyG.add(sobok);
@@ -2121,19 +2152,20 @@ function buildSobok2() {
 }
 try { sobok2 = buildSobok2(); bodyG.add(sobok2); sobok.visible = false; } catch (e) { console.warn('새 소복이를 만들지 못해 예전 모델을 보여줘요', e); }
 const ring = new THREE.Mesh(new THREE.RingGeometry(0.34, 0.42, 32), new THREE.MeshBasicMaterial({ color: '#ffe08a', transparent: true, opacity: 0.85 }));
-ring.rotation.x = -Math.PI / 2; ring.position.y = 0.012; player.add(ring);
+ring.rotation.x = -Math.PI / 2; ring.position.y = 0.012; ring.scale.setScalar(SOBOK_SCALE); player.add(ring);
 player.position.set(mapX(11.6), -0.2, -1.6); player.rotation.y = 0;
 const PR = 0.3;
 
 let curFloor = 0, stairBase = null, lastH = 0, elev = null, seat = null;
 const inStair = (x, z) => x >= 7.1 && x <= 11.4 && z >= gz(13.8) && z <= gz(16.75);
+const stepH = d => { const i = Math.floor((d + 0.16) / 0.3); return i < 0 ? 0 : Math.min(8, i + 1) * 0.175; };   // 몸 앞쪽이 닿는 디딤판 높이
 function heightAt(x, z) {
   if (inStair(x, z)) {
     if (stairBase === null) stairBase = (z < gz(15.3) ? Math.max(0, curFloor - 1) : curFloor) * 2.8;   // 북쪽 줄 = 내려가는 길, 남쪽 줄 = 올라가는 길
     const b = stairBase;
     if (x >= 9.6) lastH = b + 1.4;                                                            // 꺾이는 곳
-    else if (z >= gz(15.3)) lastH = b + Math.min(1, Math.max(0, (x - 7.2) / 2.4)) * 1.4;         // 첫 번째 계단
-    else lastH = b + 1.4 + Math.min(1, Math.max(0, (9.6 - x) / 2.4)) * 1.4;                  // 두 번째 계단
+    else if (z >= gz(15.3)) lastH = b + stepH(x - 7.2);         // 첫 번째 계단 (한 칸씩 디딤판 높이로)
+    else lastH = b + 1.4 + stepH(9.6 - x);                  // 두 번째 계단
     return lastH;
   }
   if (stairBase !== null) { curFloor = Math.max(0, Math.min(5, Math.round(lastH / 2.8))); stairBase = null; }
@@ -2213,7 +2245,8 @@ function tryClickInfo(cx, cy) {
 cv.addEventListener('pointerup', e => { if (drag && e.pointerId === drag.id && Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) < 6) tryClickInfo(e.clientX, e.clientY); });
 cv.addEventListener('pointermove', e => {
   if (!drag || e.pointerId !== drag.id) return;
-  yaw -= (e.clientX - drag.x) * (fp ? 0.005 : 0.006);
+  yaw += (e.clientX - drag.x) * (fp ? 0.005 : -0.006);   // 1인칭은 마우스 방향 그대로 고개 돌리기
+  autoYaw = null;
   if (fp) fpPitch = Math.min(0.9, Math.max(-1.0, fpPitch - (e.clientY - drag.y) * 0.004));
   else pitch = Math.min(1.35, Math.max(0.3, pitch + (e.clientY - drag.y) * 0.004));
   drag.x = e.clientX; drag.y = e.clientY;
@@ -2480,7 +2513,10 @@ const WX = { kind: null, n: 420, t: 0 };
 const WX_COLS = { petal: ['#f7c6d9', '#fbd9e6', '#ffffff', '#f4a9c4'], leaf: ['#d9472b', '#e8642a', '#f2c230', '#c8352a', '#f08a2c'], snow: ['#ffffff', '#f2f6fa'] };
 function wxSpawn(i, top) {
   const p = player.position, a = WX.geo.attributes.position.array;
-  a[i * 3] = p.x + (Math.random() - 0.5) * 34; a[i * 3 + 2] = p.z + (Math.random() - 0.5) * 34;
+  for (let k = 0; k < 6; k++) {   // 건물 안쪽이면 다시 뽑기 (창밖에만 날리게)
+    a[i * 3] = p.x + (Math.random() - 0.5) * 34; a[i * 3 + 2] = p.z + (Math.random() - 0.5) * 34;
+    if (!(a[i * 3] > -0.1 && a[i * 3] < 12.7 && a[i * 3 + 2] > -1.4 && a[i * 3 + 2] < gz(16.9))) break;
+  }
   a[i * 3 + 1] = top ? p.y + 10 + Math.random() * 4 : p.y - 1 + Math.random() * 15;
 }
 function setWeather(kind) {
@@ -2494,8 +2530,7 @@ function updateWeather(dt) {
   if (!WX.kind) return;
   WX.t += dt;
   const p = player.position, onRoof = curFloor === 5 && !elev && stairBase === null && p.z < gz(SZ);
-  const outside = onRoof || (curFloor === 0 && !elev && !(p.x > -0.1 && p.x < 12.7 && p.z > -0.1 && p.z < gz(16.9)));
-  WX.pts.visible = outside; if (!outside) return;   // 건물 안에서는 날씨가 보이지 않음
+  WX.pts.visible = true;   // 건물 안에서도 창밖으로 날리는 게 보여요 (건물 안쪽 칸에는 생기지 않음)
   const a = WX.geo.attributes.position.array;
   const fall = WX.kind === 'snow' ? 0.9 : WX.kind === 'petal' ? 0.7 : 1.1, sway = WX.kind === 'snow' ? 0.35 : 0.8;
   for (let i = 0; i < WX.n; i++) {
@@ -3276,6 +3311,39 @@ addEventListener('keydown', e => {
 
 /* ---------- 루프 ---------- */
 const clock = new THREE.Clock();
+// 방에 들어가면 그 방이 잘 보이게 시점을 저절로 돌려요 (들어온 쪽에서 방 안을 바라보게). 마우스로 돌리면 바로 멈춰요.
+const ROOMS = [[0, 6.6, 12.5, 4.4, 9.2], [0, 0.1, 6.3, 0.1, 12.4], [1, 0.1, 4.9, 0.1, 5.3], [1, 5.0, 12.5, 0.1, 11.4],
+  [2, 0.1, 5.6, 0.1, 3.8], [2, 7.6, 12.5, 0.1, 2.9], [2, 7.6, 12.5, 2.9, 5.6], [3, 0.1, 12.5, 1.0, 7.2],
+  [4, 0.1, 12.5, 0.1, 8.2], [4, 6.8, 12.5, 8.4, 11.8], [5, 4.0, 12.5, 6.0, 11.5]];
+let curRoom = null, autoYaw = null;
+function updateAutoCam(dt, df) {
+  const p = player.position;
+  if (fp || overview || elev) { curRoom = null; autoYaw = null; return; }
+  const r = ROOMS.find(q => q[0] === df && p.x > q[1] && p.x < q[2] && p.z > q[3] && p.z < q[4]) || null;
+  if (r !== curRoom) {
+    if (r && curRoom !== undefined) { const cx = (r[1] + r[2]) / 2, cz = (r[3] + r[4]) / 2; if (Math.hypot(p.x - cx, p.z - cz) > 0.8) autoYaw = Math.atan2(p.x - cx, p.z - cz); }
+    curRoom = r;
+  }
+  if (autoYaw !== null && !drag) {
+    const d = Math.atan2(Math.sin(autoYaw - yaw), Math.cos(autoYaw - yaw));
+    yaw += d * Math.min(1, dt * 2.5);
+    if (pitch < 0.95) pitch += (0.95 - pitch) * Math.min(1, dt * 2.5);
+    if (Math.abs(d) < 0.01) autoYaw = null;
+  }
+}
+// 엘리베이터 가까이 가면 엘리베이터 위에 안내 말풍선
+const elevGuide = document.getElementById('elevGuide');
+function updateElevGuide(df) {
+  const p = player.position, show = !elev && df < 5 && Math.abs(p.y - df * 2.8) < 0.5 && Math.hypot(p.x - 1.2, p.z - ELEV.c) < 3.6;
+  if (!show) { elevGuide.style.display = 'none'; return; }
+  const txt = elevUnlocked ? '🛗 엘리베이터를 타면 간편하게 이동할 수 있어요!'
+    : '🛗 엘리베이터를 타면 간편하게 이동할 수 있어요!\n🔒 옥상정원에서 방명록을 남기면 열려요';
+  if (elevGuide.dataset.t !== txt) { elevGuide.dataset.t = txt; elevGuide.textContent = txt; }
+  tmp.set(1.2, df * 2.8 + 2.75, ELEV.c).project(camera);
+  if (tmp.z > 1 || Math.abs(tmp.x) > 1.2 || Math.abs(tmp.y) > 1.2) { elevGuide.style.display = 'none'; return; }
+  elevGuide.style.display = 'block';
+  elevGuide.style.transform = `translate(${(tmp.x * 0.5 + 0.5) * innerWidth}px,${(-tmp.y * 0.5 + 0.5) * innerHeight}px) translate(-50%,-100%)`;
+}
 const camPos = new THREE.Vector3(8.2, 9, 9), camLook = new THREE.Vector3(8.2, 0.4, -1.6);
 const ray = new THREE.Raycaster(); const tmp = new THREE.Vector3();
 const hintEl = document.getElementById('hint'); const floorEl = document.getElementById('floorName'); let moved = 0, walkT = 0;
@@ -3331,7 +3399,8 @@ function tick() {
   const df = dispFloor();
   const up = fp ? df + 1 : df;   // 1인칭에서는 위층 바닥이 천장이 되도록 한 층 더 보여요
   F2.visible = up >= 1; F3.visible = up >= 2; F4.visible = up >= 3; F5.visible = up >= 4; F6.visible = up >= 5;
-  if (floorEl.dataset.f !== String(df)) { floorEl.dataset.f = df; floorEl.textContent = (df === 5 ? '옥상' : (df + 1) + '층') + ' · v65'; }
+  if (floorEl.dataset.f !== String(df)) { floorEl.dataset.f = df; floorEl.textContent = (df === 5 ? '옥상' : (df + 1) + '층') + ' · v69'; }
+  updateAutoCam(dt, df);
   // 카메라
   const p = player.position;
   const look = overview ? new THREE.Vector3(6.3, df * 2.8, gz(8.4)) : new THREE.Vector3(p.x, p.y + 0.6, p.z);
@@ -3339,7 +3408,7 @@ function tick() {
   const wantPos = tmp.set(look.x + Math.sin(yaw) * Math.cos(pt) * dist, look.y + Math.sin(pt) * dist, look.z + Math.cos(yaw) * Math.cos(pt) * dist);
   const k = 1 - Math.exp(-dt * (drag ? 10 : 4));
   if (fp) {
-    const eyeY = p.y + (seat ? 0.75 : 1.0), cpt = Math.cos(fpPitch);
+    const eyeY = p.y + (seat ? 0.85 : 1.15), cpt = Math.cos(fpPitch);
     camPos.set(p.x, eyeY, p.z); camLook.set(p.x - Math.sin(yaw) * cpt, eyeY + Math.sin(fpPitch), p.z - Math.cos(yaw) * cpt);
   } else { camPos.lerp(wantPos, k); camLook.lerp(look, k); }
   camera.position.copy(camPos); camera.lookAt(camLook);
@@ -3371,6 +3440,7 @@ function tick() {
     l.el.style.display = vis ? 'block' : 'none';
     if (vis) l.el.style.transform = `translate(${(tmp.x * 0.5 + 0.5) * innerWidth}px,${(-tmp.y * 0.5 + 0.5) * innerHeight}px) translate(-50%,-100%)`;
   }
+  updateElevGuide(df);
   requestAnimationFrame(tick);
 }
 labels.forEach(l => { l.el.style.left = '0'; l.el.style.top = '0'; });
