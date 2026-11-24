@@ -141,7 +141,7 @@
 <body>
 <div id="app"></div>
 <div id="labels"></div>
-<div id="title" class="card"><b>서울청년센터 성북</b><span id="floorName">1층 · v73</span></div>
+<div id="title" class="card"><b>서울청년센터 성북</b><span id="floorName">1층 · v76</span></div>
 <div id="btns">
   <button id="bShot">📷 사진</button>
   <button id="bEnv">🌤 계절·시간</button>
@@ -1180,6 +1180,7 @@ for (let i = 0; i < 8; i++) {
   const reg = mesh => { mesh.userData.group = g; wallMeshes.push(mesh); };
   reg(box(1.8, 0.25, 2.745, stepC, 10.5, 1.15, 17.9975, { r: 0.01, material: m }));
   for (let i = 0; i < 8; i++) { const top = 1.4 + 0.175 * (i + 1); reg(box(0.3, 0.3, 1.29, stepC, 9.6 - i * 0.3 - 0.15, top - 0.3, 17.275, { r: 0.01, material: m })); }
+  { const mn = gmat(g, '#5d6470'); for (let i = 0; i < 8; i++) { const top = 1.4 + 0.175 * (i + 1); reg(box(0.05, 0.022, 1.29, '#5d6470', 9.6 - i * 0.3 - 0.025, top - 0.02, 17.275, { r: 0, material: mn })); } }   // 미끄럼 방지 턱
 }
 solidWall(7.1, 18.0, 9.6, 18.0, { t: 0.15, color: '#d9d6cf' });
 solidWall(11.4, 16.5, 11.4, 19.5, { color: '#c9ccd0' });
@@ -1383,6 +1384,7 @@ for (let i = 0; i < 8; i++) {
   const reg = mesh => { mesh.userData.group = g; wallMeshes.push(mesh); };
   reg(box(1.8, 0.25, 2.745, stepC, 10.5, 1.15, 17.9975, { r: 0.01, material: m }));
   for (let i = 0; i < 8; i++) { const top = 1.4 + 0.175 * (i + 1); reg(box(0.3, 0.3, 1.29, stepC, 9.6 - i * 0.3 - 0.15, top - 0.3, 17.275, { r: 0.01, material: m })); }
+  { const mn = gmat(g, '#5d6470'); for (let i = 0; i < 8; i++) { const top = 1.4 + 0.175 * (i + 1); reg(box(0.05, 0.022, 1.29, '#5d6470', 9.6 - i * 0.3 - 0.025, top - 0.02, 17.275, { r: 0, material: mn })); } }   // 미끄럼 방지 턱
 }
 solidWall(7.1, 18.0, 9.6, 18.0, { t: 0.15, color: '#d9d6cf' });
 solidWall(11.4, 16.5, 11.4, 19.5, { color: '#c9ccd0' });
@@ -1539,6 +1541,7 @@ for (let i = 0; i < 8; i++) {
   const reg = mesh => { mesh.userData.group = g; wallMeshes.push(mesh); };
   reg(box(1.8, 0.25, 2.745, stepC, 10.5, 1.15, 17.9975, { r: 0.01, material: m }));
   for (let i = 0; i < 8; i++) { const top = 1.4 + 0.175 * (i + 1); reg(box(0.3, 0.3, 1.29, stepC, 9.6 - i * 0.3 - 0.15, top - 0.3, 17.275, { r: 0.01, material: m })); }
+  { const mn = gmat(g, '#5d6470'); for (let i = 0; i < 8; i++) { const top = 1.4 + 0.175 * (i + 1); reg(box(0.05, 0.022, 1.29, '#5d6470', 9.6 - i * 0.3 - 0.025, top - 0.02, 17.275, { r: 0, material: mn })); } }   // 미끄럼 방지 턱
 }
 solidWall(7.1, 18.0, 9.6, 18.0, { t: 0.15, color: '#d9d6cf' });
 solidWall(11.4, 16.5, 11.4, 19.5, { color: '#c9ccd0' });
@@ -1769,6 +1772,7 @@ for (let i = 0; i < 8; i++) {
   const reg = mesh => { mesh.userData.group = g; wallMeshes.push(mesh); };
   reg(box(1.8, 0.25, 2.745, stepC, 10.5, 1.15, 17.9975, { r: 0.01, material: m }));
   for (let i = 0; i < 8; i++) { const top = 1.4 + 0.175 * (i + 1); reg(box(0.3, 0.3, 1.29, stepC, 9.6 - i * 0.3 - 0.15, top - 0.3, 17.275, { r: 0.01, material: m })); }
+  { const mn = gmat(g, '#5d6470'); for (let i = 0; i < 8; i++) { const top = 1.4 + 0.175 * (i + 1); reg(box(0.05, 0.022, 1.29, '#5d6470', 9.6 - i * 0.3 - 0.025, top - 0.02, 17.275, { r: 0, material: mn })); } }   // 미끄럼 방지 턱
 }
 solidWall(7.1, 18.0, 9.6, 18.0, { t: 0.15, color: '#d9d6cf' });
 solidWall(11.4, 16.5, 11.4, 19.5, { color: '#c9ccd0' });
@@ -1794,7 +1798,8 @@ const brickTex = canvasTex(256, 128, (g, w, h) => {
 });
 brickTex.wrapS = brickTex.wrapT = THREE.RepeatWrapping; brickTex.repeat.set(1, 1);   // 크기는 아래 '옥상 벽돌 무늬 맞추기'에서 실제 길이로 맞춰요
 const brickMat = new THREE.MeshStandardMaterial({ map: brickTex, roughness: 0.9 });
-const brickify = g => { const m = g.mats[0]; m.map = brickTex; if (m.color && m.color.set) m.color.set('#ffffff'); m.needsUpdate = true; return g; };
+const brickify = g => { g.noFade = true; const m = g.mats[0];   // 옥상 벽돌벽은 반투명하게 하지 않고 늘 벽돌로 보여요
+  m.map = brickTex; if (m.color && m.color.set) m.color.set('#ffffff'); m.needsUpdate = true; return g; };
 const GX0 = 4.0, GX1 = 12.6, GZ0 = 8.0, SZ = 13.4;   // 옥상정원 범위 (가로 8.6 × 세로 8.8, 정사각형에 가깝게) / 계단실 북쪽 벽
 RAWZ = true;
 // 건물 가장자리 낮은 난간벽
@@ -2534,7 +2539,7 @@ addEventListener('keydown', e => { const t = e.target; if (t && (t.tagName === '
 addEventListener('keyup', e => { const t = e.target; if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA')) e.stopImmediatePropagation(); }, true);
 
 /* ---------- 계절 날씨 (봄 벚꽃잎 · 가을 단풍잎 · 겨울 눈, 여름은 없음) ---------- */
-const WX = { kind: null, n: 420, t: 0 };
+const WX = { kind: null, n: 560, t: 0 };
 {
   const pos = new Float32Array(WX.n * 3), col = new Float32Array(WX.n * 3);
   WX.geo = new THREE.BufferGeometry();
@@ -2561,7 +2566,7 @@ function wxSpawn(i, top) {
 }
 function setWeather(kind) {
   WX.kind = kind; WX.pts.visible = !!kind; if (!kind) return;
-  WX.mat.map = WX.tex[kind]; WX.mat.size = kind === 'snow' ? 0.17 : 0.24; WX.mat.needsUpdate = true;
+  WX.mat.map = WX.tex[kind]; WX.mat.size = kind === 'snow' ? 0.26 : 0.36; WX.mat.needsUpdate = true;
   const c = WX.geo.attributes.color.array, cols = WX_COLS[kind];
   for (let i = 0; i < WX.n; i++) { const h = hex2(cols[i % cols.length]); c[i * 3] = h[0] / 255; c[i * 3 + 1] = h[1] / 255; c[i * 3 + 2] = h[2] / 255; wxSpawn(i, false); }
   WX.geo.attributes.color.needsUpdate = true; WX.geo.attributes.position.needsUpdate = true;
@@ -3454,7 +3459,7 @@ function tick() {
   const df = dispFloor();
   const up = fp ? df + 1 : df;   // 1인칭에서는 위층 바닥이 천장이 되도록 한 층 더 보여요
   F2.visible = up >= 1; F3.visible = up >= 2; F4.visible = up >= 3; F5.visible = up >= 4; F6.visible = up >= 5;
-  if (floorEl.dataset.f !== String(df)) { floorEl.dataset.f = df; floorEl.textContent = (df === 5 ? '옥상' : (df + 1) + '층') + ' · v73'; }
+  if (floorEl.dataset.f !== String(df)) { floorEl.dataset.f = df; floorEl.textContent = (df === 5 ? '옥상' : (df + 1) + '층') + ' · v76'; }
   updateAutoCam(dt, df);
   // 카메라
   const p = player.position;
@@ -3474,7 +3479,7 @@ function tick() {
   for (const t of targets) {
     const dir = t.clone().sub(camera.position); const dist = dir.length();
     ray.set(camera.position, dir.normalize()); ray.far = dist - 0.1;
-    for (const h of ray.intersectObjects(wallMeshes, false)) h.object.userData.group.target = 0.14;
+    for (const h of ray.intersectObjects(wallMeshes, false)) { const wg = h.object.userData.group; if (!wg.noFade) wg.target = 0.14; }
   }
   for (const g of wallGroups) {
     g.cur += (g.target - g.cur) * Math.min(1, dt * 8);
