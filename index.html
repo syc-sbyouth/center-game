@@ -141,7 +141,7 @@
 <body>
 <div id="app"></div>
 <div id="labels"></div>
-<div id="title" class="card"><b>서울청년센터 성북</b><span id="floorName">1층 · v70</span></div>
+<div id="title" class="card"><b>서울청년센터 성북</b><span id="floorName">1층 · v72</span></div>
 <div id="btns">
   <button id="bShot">📷 사진</button>
   <button id="bEnv">🌤 계절·시간</button>
@@ -167,7 +167,7 @@
 <div id="rank" class="card"><div class="gbHead"><b id="rankT">순위표</b><button id="rankClose">닫기</button></div><div id="rankMode"></div><div id="rankMine"></div>
   <form id="rankForm" autocomplete="off"><input id="rankName" maxlength="10" placeholder="닉네임 (비우면 익명의 소복이)"><button type="button" id="rankSend">기록 올리기</button></form><div id="rankMsg"></div><ol id="rankList"></ol></div>
 <div id="mail" class="card"><div class="gbHead"><b id="mailT">✉️ 익명 우편함</b><button id="mailClose">닫기</button></div>
-  <p class="mailSub">센터를 이용한 후기나 바라는 점을 자유롭게 남겨 주세요.<br>이름은 남지 않고, 청년지원매니저만 읽어요.<br>여러분의 소중한 의견이 센터를 더 좋은 공간으로 만들어요.</p>
+  <p class="mailSub">센터를 이용한 후기나 바라는 점을 자유롭게 남겨 주세요.<br>여러분의 소중한 의견이 센터를 더 좋은 공간으로 만들어요.<br>의견은 공유되지 않고, 청년지원매니저만 읽을 수 있어요.</p>
   <div id="mailKinds"><button data-k="후기" class="on">💛 이용 후기</button><button data-k="개선">🛠 개선 의견</button><button data-k="기타">💬 기타</button></div>
   <textarea id="mailText" maxlength="500" placeholder="예) 화상면접실 덕분에 면접 준비를 잘했어요!"></textarea>
   <div class="mailRow"><span id="mailCount">0 / 500</span><button id="mailSend">💌 보내기</button></div><div id="mailMsg"></div>
@@ -531,8 +531,8 @@ function directory(here, x, z) {
 const tileTex = canvasTex(256, 192, (c, w, h) => { c.fillStyle = '#eee0c8'; c.fillRect(0, 0, w, h); c.strokeStyle = '#d6c6a8'; c.lineWidth = 2; for (let x = 0; x < w; x += 12) { c.beginPath(); c.moveTo(x, 0); c.lineTo(x, h); c.stroke(); } for (let y = 0; y < h; y += 32) { c.beginPath(); c.moveTo(0, y); c.lineTo(w, y); c.stroke(); } });
 // 익명 우편함 (앞 = 로컬 +z). stand = 바닥에 세우는 다리형
 const MAILBOXES = [];
-const TT_INFO_TEXT = '티톡이란? 청년지원매니저와 함께 청년정책에 대해 알아보고,\n청년지원매니저가 직접 준비한 콘텐츠를 함께 하며 편안하게\n대화를 나누는 프로그램입니다. 여러분이 원하는 티톡 주제를\n자유롭게 적어주세요! (예: 베이킹, 보드게임 등...)';
-const MAIL_INFO_TEXT = '센터를 이용한 후기나 바라는 점을 남겨 주세요.\n이름은 남지 않고, 청년지원매니저만 읽어요.\n여러분의 소중한 의견이 센터를 더 좋은 공간으로 만들어요.';
+const TT_INFO_TEXT = '티톡이란? 청년지원매니저와 함께 청년정책에 대해 알아보고, 청년지원매니저가 직접 준비한 콘텐츠를 함께 하며 편안하게 대화를 나누는 프로그램입니다. 여러분이 원하는 티톡 주제를 자유롭게 적어주세요! (예: 베이킹, 보드게임 등...)\n\n의견은 공유되지 않고, 청년지원매니저만 읽을 수 있어요.';
+const MAIL_INFO_TEXT = '센터를 이용한 후기나 바라는 점을 남겨 주세요.\n여러분의 소중한 의견이 센터를 더 좋은 공간으로 만들어요.\n의견은 공유되지 않고, 청년지원매니저만 읽을 수 있어요.';
 function mailbox(cx, cz, rotY, y0, stand, tt) {
   const g = grp(cx, cz, rotY); g.position.y = y0;
   const P = r => ({ parent: g, r }), ms = []; let b = 0;
@@ -777,10 +777,8 @@ mailbox(1.9, 6.2, Math.PI - Math.atan2(1.1, 2), 0.725, false, true);   // 1층�
   [-W / 2, W / 2].forEach(x => { box(0.05, 1.97, 0.05, '#a6acb3', x, 0, 0, { parent: g, r: 0 }); box(0.06, 0.05, 0.5, '#a6acb3', x, 0, 0, { parent: g, r: 0 }); });
   const wt = canvasTex(820, 640, (c, w, h) => {
     c.fillStyle = '#fbfbf8'; c.fillRect(0, 0, w, h); c.textAlign = 'center'; c.textBaseline = 'middle';
-    c.fillStyle = '#f2a33a'; c.beginPath(); c.roundRect(w / 2 - 110, 70, 220, 74, 37); c.fill();
-    c.fillStyle = '#ffffff'; c.font = '50px Jua, sans-serif'; c.fillText('티톡', w / 2, 109);
-    c.fillStyle = '#4f7fd0'; c.font = '62px Jua, sans-serif'; c.fillText('2027년에 여러분이', w / 2, 255); c.fillText('하고 싶은 티톡 주제를', w / 2, 345);
-    c.fillStyle = '#e0779a'; c.fillText('적어주세요!', w / 2, 440);
+    c.fillStyle = '#4f7fd0'; c.font = '62px Jua, sans-serif'; c.fillText('2027년에 여러분이', w / 2, 95); c.fillText('하고 싶은 티톡 주제를', w / 2, 185);
+    c.fillStyle = '#e0779a'; c.fillText('적어주세요!', w / 2, 280);
     [['#ffe08a', 60, 540], ['#a8d8f0', 700, 540], ['#c9e8b8', 380, 560]].forEach(([col, x, y]) => { c.fillStyle = col; c.fillRect(x, y, 60, 46); });
   });
   const wm = new THREE.MeshStandardMaterial({ map: wt, roughness: 0.6 });
@@ -2098,7 +2096,7 @@ try {
 /* ---------- 소복이 (플레이어) ---------- */
 const player = new THREE.Group(); scene.add(player);
 const bodyG = new THREE.Group(); player.add(bodyG);
-const SOBOK_SCALE = 1.18; bodyG.scale.setScalar(SOBOK_SCALE);   // 소복이 키 키우기 (키가 작다는 의견 반영)
+const SOBOK_SCALE = 1.0; bodyG.scale.setScalar(SOBOK_SCALE);   // 소복이 키 키우기 (키가 작다는 의견 반영)
 // 소복이 (앞·옆·뒤 3D 그림에 맞춘 모델): 둥근 몸 + 갈색 등·머리 + 크림색 얼굴·배(하트 모양 이마선) + 날개 + 하트 꼬리
 const SB = { cream: '#fbefcf', brown: '#a8754f', dark: '#4a3226', eye: '#2b211c', blush: '#f4a37c' };
 const sobok = new THREE.Group(); sobok.position.y = 0.4; bodyG.add(sobok);
@@ -3133,7 +3131,7 @@ async function openMail(f, tt) {
   infoEl.style.display = 'none'; keys.clear(); await gbInit();
   MAIL.floor = f; MAIL.tt = !!tt;
   document.getElementById('mailT').textContent = tt ? '💬 티톡 우편함' : '✉️ 익명 우편함 · ' + floorName(f);
-  document.querySelector('#mail .mailSub').innerHTML = tt ? '<b>티톡이란?</b> 청년지원매니저와 함께 청년정책에 대해 알아보고, 청년지원매니저가 직접 준비한 콘텐츠를 함께 하며 편안하게 대화를 나누는 프로그램입니다.<br>2027년에 여러분이 원하는 티톡 주제를 자유롭게 적어주세요! (예: 베이킹, 보드게임 등...)<br>이름은 남지 않고, 청년지원매니저만 읽어요.' : MAIL_SUB;
+  document.querySelector('#mail .mailSub').innerHTML = tt ? '<b>티톡이란?</b> 청년지원매니저와 함께 청년정책에 대해 알아보고, 청년지원매니저가 직접 준비한 콘텐츠를 함께 하며 편안하게 대화를 나누는 프로그램입니다.<br>2027년에 여러분이 원하는 티톡 주제를 자유롭게 적어주세요! (예: 베이킹, 보드게임 등...)<br>의견은 공유되지 않고, 청년지원매니저만 읽을 수 있어요.' : MAIL_SUB;
   document.getElementById('mailKinds').style.display = tt ? 'none' : '';
   mailText.placeholder = tt ? '예) 베이킹, 보드게임, 자취 요리…' : '예) 화상면접실 덕분에 면접 준비를 잘했어요!';
   document.getElementById('mailMode').textContent = GB.mode === 'live' ? '' : '연습 모드예요. 지금은 이 기기에만 저장돼요. (저장 공간을 연결하면 센터로 전달돼요)';
@@ -3426,7 +3424,7 @@ function tick() {
   const df = dispFloor();
   const up = fp ? df + 1 : df;   // 1인칭에서는 위층 바닥이 천장이 되도록 한 층 더 보여요
   F2.visible = up >= 1; F3.visible = up >= 2; F4.visible = up >= 3; F5.visible = up >= 4; F6.visible = up >= 5;
-  if (floorEl.dataset.f !== String(df)) { floorEl.dataset.f = df; floorEl.textContent = (df === 5 ? '옥상' : (df + 1) + '층') + ' · v70'; }
+  if (floorEl.dataset.f !== String(df)) { floorEl.dataset.f = df; floorEl.textContent = (df === 5 ? '옥상' : (df + 1) + '층') + ' · v72'; }
   updateAutoCam(dt, df);
   // 카메라
   const p = player.position;
@@ -3435,7 +3433,7 @@ function tick() {
   const wantPos = tmp.set(look.x + Math.sin(yaw) * Math.cos(pt) * dist, look.y + Math.sin(pt) * dist, look.z + Math.cos(yaw) * Math.cos(pt) * dist);
   const k = 1 - Math.exp(-dt * (drag ? 10 : 4));
   if (fp) {
-    const eyeY = p.y + (seat ? 0.85 : 1.15), cpt = Math.cos(fpPitch);
+    const eyeY = p.y + (seat ? 0.75 : 1.0), cpt = Math.cos(fpPitch);
     camPos.set(p.x, eyeY, p.z); camLook.set(p.x - Math.sin(yaw) * cpt, eyeY + Math.sin(fpPitch), p.z - Math.cos(yaw) * cpt);
   } else { camPos.lerp(wantPos, k); camLook.lerp(look, k); }
   camera.position.copy(camPos); camera.lookAt(camLook);
