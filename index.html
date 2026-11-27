@@ -144,7 +144,7 @@
 <body>
 <div id="app"></div>
 <div id="labels"></div>
-<div id="title" class="card"><b>서울청년센터 성북</b><span id="floorName">1층 · v86</span></div>
+<div id="title" class="card"><b>서울청년센터 성북</b><span id="floorName">1층 · v93</span></div>
 <div id="btns">
   <button id="bShot">📷 사진</button>
   <button id="bEnv">🌤 계절·시간</button>
@@ -1932,10 +1932,11 @@ box(0.5, 0.55, 3.8, '#26282c', 12.25, 0, 11.3, { collide: true, r: 0.02 });
   });
   plane(3.7, 0.58, new THREE.MeshBasicMaterial({ map: lt, transparent: true, side: THREE.DoubleSide }), 12.3, 0.88, 11.3, -Math.PI / 2); }
 // 계단실 (벽돌, 검은 문) + 실외기 칸 (벽돌 + 검은 철망)
-brickify(solidWall(5.8, SZ, GX1, SZ, { doors: [[0.3, 1.2]], color: '#ffffff' }));
-brickify(solidWall(5.8, SZ, 5.8, 16.8, { color: '#ffffff' }));
-brickify(solidWall(5.8, 16.8, GX1, 16.8, { color: '#ffffff' }));
-brickify(solidWall(GX1, SZ, GX1, 16.8, { color: '#ffffff' }));
+const brickFade = g => { brickify(g); g.noFade = false; return g; };   // 계단실 벽: 소복이를 가리면 반투명하게
+brickFade(solidWall(5.8, SZ, GX1, SZ, { doors: [[0.3, 1.2]], color: '#ffffff' }));
+brickFade(solidWall(5.8, SZ, 5.8, 16.8, { color: '#ffffff' }));
+brickFade(solidWall(5.8, 16.8, GX1, 16.8, { color: '#ffffff' }));
+brickFade(solidWall(GX1, SZ, GX1, 16.8, { color: '#ffffff' }));
 { const g = newGroup(), lid = gmat(g, '#8f8b85'); piece(g, 5.7, (SZ + 16.8) / 2, GX1 + 0.1, (SZ + 16.8) / 2, 2.76, 2.88, 16.8 - SZ + 0.2, lid); }   // 계단실 지붕 (가리면 투명)
 makeDoor(6.1, SZ, 7.0, SZ, { swing: -1, frame: '#1f2124', solid: '#24272b' });   // 옥상 문 (자동)
 floorPoly([[5.8, SZ], [7.1, SZ], [7.1, 16.8], [5.8, 16.8]], '#c9c5bd');
@@ -2129,7 +2130,13 @@ try {
     m.geometry.computeBoundingBox(); const b = m.geometry.boundingBox, W = b.max.x - b.min.x, Hh = b.max.y - b.min.y, D = b.max.z - b.min.z;
     const old = Array.isArray(m.material) ? m.material : [0, 1, 2, 3, 4, 5].map(() => m.material);
     const sz = [[D, Hh], [D, Hh], [W, D], [W, D], [W, Hh], [W, Hh]];   // 상자 면 순서: 오른쪽·왼쪽·위·아래·앞·뒤
-    m.material = old.map((q, k) => q && q.map === brickTex ? faceMat(Math.max(0.05, sz[k][0]), Math.max(0.05, sz[k][1])) : q);
+    const wg = m.userData.group, own = wg && !wg.noFade;   // 반투명해지는 벽은 그 벽만의 재질을 써야 같이 흐려져요
+    m.material = old.map((q, k) => {
+      if (!(q && q.map === brickTex)) return q;
+      const w = Math.max(0.05, sz[k][0]), h = Math.max(0.05, sz[k][1]);
+      if (!own) return faceMat(w, h);
+      const nm = new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.9, map: brickTexFor(w, h) }); nm.userData.base = 1; wg.mats.push(nm); return nm;
+    });
     m.receiveShadow = false;
   });
 } catch (e) { console.warn('벽돌 무늬 맞추기 실패', e); }
@@ -2605,7 +2612,8 @@ function updateWeather(dt) {
   if (!WX.kind) return;
   WX.t += dt;
   const p = player.position, onRoof = curFloor === 5 && !elev && stairBase === null && p.z < gz(SZ);
-  WX.pts.visible = true;   // 건물 안에서도 창밖으로 날리는 게 보여요 (건물 안쪽 칸에는 생기지 않음)
+  WX.pts.visible = true;
+  WX.geo.setDrawRange(0, fp ? Math.round(WX.n * 0.35) : WX.n); WX.mat.size = fp ? 0.15 : 0.22;   // 1인칭은 눈앞이라 조금만, 작게   // 건물 안에서도 창밖으로 날리는 게 보여요 (건물 안쪽 칸에는 생기지 않음)
   const a = WX.geo.attributes.position.array;
   const fall = WX.kind === 'snow' ? 0.9 : WX.kind === 'petal' ? 0.7 : 1.1, sway = WX.kind === 'snow' ? 0.35 : 0.8;
   for (let i = 0; i < WX.n; i++) {
@@ -2644,6 +2652,7 @@ function applyEnv() {
   setCol(hemi.color, lerpHex(A[2], B[2], t)); setCol(hemi.groundColor, lerpHex(A[3], B[3], t)); hemi.intensity = A[4] + (B[4] - A[4]) * t;
   setCol(sun.color, lerpHex(A[5], B[5], t)); sun.intensity = A[6] + (B[6] - A[6]) * t;
   renderer.toneMappingExposure = A[7] + (B[7] - A[7]) * t;
+  if (typeof CL !== 'undefined') { const nt = A[8] + (B[8] - A[8]) * t; CL.mats.forEach(m => { setCol(m.color, lerpHex('#ffffff', '#3e4767', nt)); m.opacity = 0.95 - 0.3 * nt; }); }
   lampLight.intensity = glow * 0.75; lampMat.emissiveIntensity = glow * 1.6;
   const T = sun.target.position;
   if (hour >= 6 && hour <= 19) { const a = (hour - 6) / 13 * Math.PI; sun.position.set(T.x + 16 * Math.cos(a), 6 + 18 * Math.sin(a), T.z + 8); }
@@ -2664,6 +2673,51 @@ function applyEnv() {
   const live = ENV.season === null && ENV.hour === null;
   document.getElementById('envNow').textContent = '지금: ' + SEASON_KO[season] + ' · ' + phaseName(hour) + (live ? ' (실시간)' : ' (미리보기)');
 }
+
+/* ---------- 하늘 구름 (사진처럼 넓게 펼쳐진 솜구름, 천천히 흘러가요) ----------
+   구름은 그림(텍스처)을 붙인 납작한 판이라 렉이 거의 없어요. 개수·속도는 CLOUD 숫자로 조절해요. */
+const CLOUD = { n: 34, speed: 1.0, near: 60, far: 160 };
+function cloudTex(seed) {
+  let r = seed * 9301 + 49297; const rnd = () => (r = (r * 9301 + 49297) % 233280) / 233280;
+  const W = 512, H = 320, cv = document.createElement('canvas'); cv.width = W; cv.height = H; const c = cv.getContext('2d');
+  const base = H * 0.8, tall = 0.55 + rnd() * 0.5, puffs = [];
+  const n = 45 + Math.floor(rnd() * 20);
+  for (let i = 0; i < n; i++) {   // 작은 솜뭉치를 많이 겹쳐 가장자리가 몽글몽글하게
+    const u = rnd(), mid = Math.pow(1 - Math.abs(u - 0.5) * 2, 0.7), x = W * (0.08 + 0.84 * u);
+    const rad = H * (0.06 + 0.1 * mid + rnd() * 0.07), y = base - rad * 0.6 - rnd() * H * 0.42 * mid * tall;
+    puffs.push([x, y, rad]);
+  }
+  puffs.sort((p, q) => p[1] - q[1]);
+  c.filter = 'blur(1.5px)';
+  for (const [x, y, rad] of puffs) {   // 부드러운 솜뭉치
+    const g = c.createRadialGradient(x, y, rad * 0.2, x, y, rad);
+    g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(0.62, 'rgba(255,255,255,.96)'); g.addColorStop(0.85, 'rgba(255,255,255,.45)'); g.addColorStop(1, 'rgba(255,255,255,0)');
+    c.fillStyle = g; c.beginPath(); c.arc(x, y, rad, 0, 7); c.fill();
+  }
+  c.filter = 'none'; c.globalCompositeOperation = 'source-atop';   // 아랫부분은 회청색 그늘
+  const sh = c.createLinearGradient(0, base - H * 0.3, 0, base + 8); sh.addColorStop(0, 'rgba(200,214,232,0)'); sh.addColorStop(0.7, 'rgba(196,210,230,.35)'); sh.addColorStop(1, 'rgba(170,188,214,.7)');
+  c.fillStyle = sh; c.fillRect(0, 0, W, H);
+  const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace; return t;
+}
+const CL = (() => {
+  const mats = [1, 2, 3, 4, 5].map(k => new THREE.SpriteMaterial({ map: cloudTex(k), transparent: true, depthWrite: false, fog: false, opacity: 0.95 }));
+  const clouds = [];
+  for (let i = 0; i < CLOUD.n; i++) {
+    const r = CLOUD.near + (CLOUD.far - CLOUD.near) * (i + Math.random() * 0.8) / CLOUD.n;   // 구름마다 거리를 다르게 → 서로 겹쳐도 앞뒤가 안 바뀌어서 깜빡이지 않아요
+    const sp = new THREE.Sprite(mats[i % mats.length]), w = 26 + Math.random() * 30 + r * 0.12;
+    sp.scale.set(w, w * 0.625, 1); sp.renderOrder = -1000 - i;   // 먼 구름부터 그려요
+    sp.userData = { ang: Math.random() * Math.PI * 2, r, y: 14 + Math.random() * 30 + r * 0.08, sp: 0.75 + Math.random() * 0.5 };
+    scene.add(sp); clouds.push(sp);
+  }
+  return { clouds, mats };
+})();
+function updateClouds(dt) {   // 건물 둘레를 한 방향으로 천천히 빙 돌아요 (사라지거나 갑자기 나타나지 않게)
+  for (const c of CL.clouds) {
+    const u = c.userData; u.ang += CLOUD.speed * u.sp * dt / u.r;
+    c.position.set(6.3 + Math.cos(u.ang) * u.r, u.y, 8 + Math.sin(u.ang) * u.r);
+  }
+}
+updateClouds(0);
 function updateEnv(dt) { ENV.t += dt; if (ENV.t > 20) { ENV.t = 0; applyEnv(); } }
 { // 계절·시간 미리보기 창
   const envEl = document.getElementById('env');
@@ -3051,7 +3105,7 @@ addEventListener('keyup', e => { if (IG.open) e.stopImmediatePropagation(); }, t
 /* ---------- 미니게임: 거울 댄스 (4층 멀티룸) ----------
    거울 속 소복이의 춤(방향)을 외웠다가 똑같이 따라 눌러요. 성공할 때마다 동작이 하나씩 늘어나요.
    ↓ 숫자를 바꿔 난이도를 조절할 수 있어요 */
-const DGC = { start: 3, maxLen: 8, lives: 3, stepSlow: 0.62, stepFast: 0.3 };   // 처음 3동작 → 한 단계마다 1개씩 늘어 최대 8동작
+const DGC = { start: 3, maxLen: 8, lives: 3, stepSlow: 0.62, stepFast: 0.3, perMove: 1.5 };   // perMove: 따라 추기 제한 시간 (동작 1개당 초)   // 처음 3동작 → 한 단계마다 1개씩 늘어 최대 8동작
 const D_DIRS = ['up', 'down', 'left', 'right'], D_ARW = { up: '⬆', down: '⬇', left: '⬅', right: '➡' };
 const dgEl = document.getElementById('dg'), dgCv = document.getElementById('dgCv'), dgMain = document.getElementById('dgMain'), dgSub = document.getElementById('dgSub');
 const dgPadBtns = [...document.querySelectorAll('.dgPad button')];
@@ -3092,9 +3146,12 @@ function dgLoop(now) {
     DG.timer -= dt;
     if (DG.timer <= 0) {
       if (DG.i < DG.seq.length) { DG.arrow = DG.seq[DG.i]; dgPose(DG.arrow, DG.step * 0.75); DG.i++; DG.timer = DG.step; }
-      else { DG.state = 'input'; DG.i = 0; DG.arrow = null; dgMsg('이제 따라 해 보세요!'); dgButtons(); }
+      else { DG.state = 'input'; DG.i = 0; DG.arrow = null; DG.limit = DG.left = DG.seq.length * DGC.perMove; dgMsg('이제 따라 해 보세요!'); dgButtons(); }
     }
     if (DG.poseT <= 0) DG.arrow = null;
+  } else if (DG.state === 'input') {
+    DG.left -= dt;
+    if (DG.left <= 0) { DG.left = 0; DG.lives--; DG.state = 'miss'; DG.timer = 1.2; dgMsg(DG.lives > 0 ? '⏰ 시간 초과! 다시 보여줄게요' : '⏰ 시간 초과!'); dgButtons(); }
   } else if (DG.state === 'ok' || DG.state === 'miss') {
     DG.timer -= dt;
     if (DG.timer <= 0) {
@@ -3159,10 +3216,11 @@ function dgDraw() {
   if (DG.state !== 'intro' && DG.state !== 'over') {
     const n = DG.seq.length, sp = Math.min(22, 280 / n), x0 = 180 - (n - 1) * sp / 2, done = DG.state === 'show' ? DG.i : DG.state === 'ok' ? n : DG.i;
     for (let j = 0; j < n; j++) { c.fillStyle = j < done ? (DG.state === 'show' ? '#e0779a' : '#3fa89f') : '#fffaf0'; c.beginPath(); c.arc(x0 + j * sp, 334, Math.min(7, sp / 3), 0, 7); c.fill(); }
-    c.font = '16px Jua, sans-serif'; c.fillStyle = '#7a6a58'; c.fillText(DG.state === 'show' ? '거울 속 소복이를 잘 보세요! (' + n + '동작)' : DG.state === 'input' ? '따라 추기 ' + DG.i + ' / ' + n : '', 180, 362);
+    if (DG.state === 'input' && DG.limit) { const r = Math.max(0, DG.left / DG.limit); c.fillStyle = 'rgba(160,120,80,.18)'; c.beginPath(); c.roundRect(60, 312, 240, 8, 4); c.fill(); c.fillStyle = r > 0.5 ? '#3fa89f' : r > 0.25 ? '#e8a93c' : '#d0645a'; c.beginPath(); c.roundRect(60, 312, Math.max(8, 240 * r), 8, 4); c.fill(); }
+    c.font = '16px Jua, sans-serif'; c.fillStyle = '#7a6a58'; c.fillText(DG.state === 'show' ? '거울 속 소복이를 잘 보세요! (' + n + '동작)' : DG.state === 'input' ? '따라 추기 ' + DG.i + ' / ' + n + ' · ⏰ ' + Math.ceil(DG.left) + '초' : '', 180, 362);
   }
   if (DG.msgT > 0) { c.globalAlpha = Math.min(1, DG.msgT * 2); c.font = '24px Jua, sans-serif'; c.fillStyle = DG.state === 'miss' ? '#d0645a' : '#3d8f5a'; c.fillText(DG.msg, 180, 84); c.globalAlpha = 1; }
-  if (DG.state === 'intro') cvPanel(c, W, 70, 240, [['거울 댄스', 106, 30, '#e0779a'], ['거울 속 소복이가 춤을 춰요!', 150, 17], ['순서를 잘 외웠다가', 176, 17], ['⬅ ⬆ ⬇ ➡ 로 똑같이 따라 추세요.', 202, 17], ['성공할 때마다 동작이 늘어요 (최대 8개) · ❤️ 3개', 236, 14, '#d0645a'], ['최고 기록: ' + DG.best + '단계', 276, 16, '#a98a62']]);
+  if (DG.state === 'intro') cvPanel(c, W, 70, 240, [['거울 댄스', 106, 30, '#e0779a'], ['거울 속 소복이가 춤을 춰요!', 150, 17], ['순서를 잘 외웠다가', 176, 17], ['⬅ ⬆ ⬇ ➡ 로 똑같이 따라 추세요.', 202, 17], ['단계가 높아질수록 동작이 늘어나요', 236, 15, '#d0645a'], ['최고 기록: ' + DG.best + '단계', 276, 16, '#a98a62']]);
   if (DG.state === 'over') {
     const rk = DG.score >= 10 ? '🕺 댄스 마스터' : DG.score >= 6 ? '💃 리듬 천재' : DG.score >= 3 ? '🎵 흥 많은 댄서' : '🌱 새내기 댄서';
     cvPanel(c, W, 70, 240, [['춤 끝!', 108, 30, '#e0779a'], [DG.score + '단계 성공', 160, 36, '#4a3b2c'], [rk, 208, 21], [DG.newBest ? '🎉 새 최고 기록!' : '최고 기록: ' + DG.best + '단계', 248, 17]]);
@@ -3426,7 +3484,7 @@ addEventListener('keydown', e => {
 
 /* ---------- 루프 ---------- */
 const clock = new THREE.Clock();
-// 방에 들어가면 그 방이 잘 보이게 시점을 저절로 돌려요 (들어온 쪽에서 방 안을 바라보게). 마우스로 돌리면 바로 멈춰요.
+// 방에 들어가면 그 방이 잘 보이게, 방에서 복도로 나오면 걸어가는 쪽을 보게 시점을 저절로 돌려요. 마우스로 돌리면 바로 멈춰요.
 const ROOMS = [[0, 6.6, 12.5, 4.4, 9.2], [0, 0.1, 6.3, 0.1, 12.4], [1, 0.1, 4.9, 0.1, 5.3], [1, 5.0, 12.5, 0.1, 11.4],
   [2, 0.1, 5.6, 0.1, 3.8], [2, 7.6, 12.5, 0.1, 2.9], [2, 7.6, 12.5, 2.9, 5.6], [3, 0.1, 12.5, 1.0, 7.2],
   [4, 0.1, 12.5, 0.1, 8.2], [4, 6.8, 12.5, 8.4, 11.8], [5, 4.0, 12.5, 6.0, 11.5]];
@@ -3436,6 +3494,7 @@ function updateAutoCam(dt, df) {
   if (fp || overview || elev) { curRoom = null; autoYaw = null; return; }
   const r = ROOMS.find(q => q[0] === df && p.x > q[1] && p.x < q[2] && p.z > q[3] && p.z < q[4]) || null;
   if (r !== curRoom) {
+    if (!r && curRoom) autoYaw = player.rotation.y + Math.PI;   // 방에서 복도로 나오면 걸어가는 방향을 바라보게
     if (r && curRoom !== undefined) { const cx = (r[1] + r[2]) / 2, cz = (r[3] + r[4]) / 2; if (Math.hypot(p.x - cx, p.z - cz) > 0.8) autoYaw = Math.atan2(p.x - cx, p.z - cz); }
     curRoom = r;
   }
@@ -3513,12 +3572,12 @@ function tick() {
     if (txt !== actText) { actText = txt; actBtn.textContent = txt; actBtn.style.display = txt ? 'block' : 'none'; }
   }
 
-  updateMediaWall(dt); updateEnv(dt); updateWeather(dt);
+  updateMediaWall(dt); updateEnv(dt); updateWeather(dt); updateClouds(dt);
   // 층 보이기
   const df = dispFloor();
   const up = fp ? df + 1 : df;   // 1인칭에서는 위층 바닥이 천장이 되도록 한 층 더 보여요
   F2.visible = up >= 1; F3.visible = up >= 2; F4.visible = up >= 3; F5.visible = up >= 4; F6.visible = up >= 5;
-  if (floorEl.dataset.f !== String(df)) { floorEl.dataset.f = df; floorEl.textContent = (df === 5 ? '옥상' : (df + 1) + '층') + ' · v86'; }
+  if (floorEl.dataset.f !== String(df)) { floorEl.dataset.f = df; floorEl.textContent = (df === 5 ? '옥상' : (df + 1) + '층') + ' · v93'; }
   updateAutoCam(dt, df);
   // 카메라
   const p = player.position;
