@@ -144,11 +144,10 @@
 <body>
 <div id="app"></div>
 <div id="labels"></div>
-<div id="title" class="card"><b>서울청년센터 성북</b><span id="floorName">1층 · v83</span></div>
+<div id="title" class="card"><b>서울청년센터 성북</b><span id="floorName">1층 · v86</span></div>
 <div id="btns">
   <button id="bShot">📷 사진</button>
   <button id="bEnv">🌤 계절·시간</button>
-  <button id="bView">전체 보기</button>
   <button id="bFP">👀 1인칭</button>
   <button id="bBag" class="on" style="display:none">🎒 가방</button>
   <button id="bLabel" class="on">이름표</button>
@@ -169,7 +168,7 @@
   <div class="dgPad"><button data-d="left">⬅</button><button data-d="up">⬆</button><button data-d="down">⬇</button><button data-d="right">➡</button></div>
   <div class="mgCtl"><button id="dgSub">🏆 순위표</button><button id="dgMain">시작하기</button></div><div class="mgKeys">방향키(또는 WASD)로 따라 추기 · 시작: Space · 다시 하기: Enter · 나가기: Esc</div></div></div>
 <div id="rank" class="card"><div class="gbHead"><b id="rankT">순위표</b><button id="rankClose">닫기</button></div><div id="rankMode"></div><div id="rankMine"></div>
-  <form id="rankForm" autocomplete="off"><input id="rankName" maxlength="10" placeholder="닉네임 (비우면 익명의 소복이)"><button type="button" id="rankSend">기록 올리기</button></form><div id="rankMsg"></div><ol id="rankList"></ol></div>
+  <form id="rankForm" autocomplete="off"><input id="rankName" maxlength="10" placeholder="닉네임 (비우면 익명의 소복이)"><button type="button" id="rankSend">기록 올리기</button></form><div id="rankMsg"></div><ol id="rankList"></ol><div id="rankAdmin" style="display:none;margin-top:10px;text-align:right"><button type="button" id="rankReset">🗑 이 게임 순위표 초기화</button> <button type="button" id="rankResetAll">🗑 모든 순위표 초기화</button></div></div>
 <div id="mail" class="card"><div class="gbHead"><b id="mailT">✉️ 익명 우편함</b><button id="mailClose">닫기</button></div>
   <p class="mailSub">센터를 이용한 후기나 바라는 점을 자유롭게 남겨 주세요.<br>여러분의 소중한 의견이 센터를 더 좋은 공간으로 만들어요.<br>의견은 공유되지 않고, 청년지원매니저만 읽을 수 있어요.</p>
   <div id="mailKinds"><button data-k="후기" class="on">💛 이용 후기</button><button data-k="개선">🛠 개선 의견</button><button data-k="기타">💬 기타</button></div>
@@ -2279,7 +2278,7 @@ const joyEnd = e => { if (e.pointerId === joyId) { joyId = null; joyV.x = joyV.z
 joy.addEventListener('pointerup', joyEnd); joy.addEventListener('pointercancel', joyEnd);
 
 let overview = false, zoom = 1;
-const bView = document.getElementById('bView'), bLabel = document.getElementById('bLabel');
+const bLabel = document.getElementById('bLabel');
 let fp = false, fpPitch = 0, fpTold = false;
 const bFP = document.getElementById('bFP');
 function setFP(on) {
@@ -2287,8 +2286,7 @@ function setFP(on) {
   player.visible = !fp; camera.fov = fp ? 68 : 35; camera.updateProjectionMatrix(); fpPitch = 0;
   if (fp && !fpTold) { fpTold = true; showInfo({ title: '👀 1인칭 시점', text: '소복이의 눈으로 센터를 둘러봐요!\n· 화면을 끌면 둘러볼 수 있어요.\n· 위·아래(W·S)로 걷고, 왼쪽·오른쪽(A·D)으로 몸을 돌려요.\n· 다시 누르면 원래 시점으로 돌아와요.' }); }
 }
-bFP.onclick = () => { if (overview) bView.onclick(); setFP(!fp); };
-bView.onclick = () => { if (fp) setFP(false); overview = !overview; bView.classList.toggle('on', overview); bView.textContent = overview ? '따라가기' : '전체 보기'; };
+bFP.onclick = () => { setFP(!fp); };
 bLabel.onclick = () => { showLabels = !showLabels; bLabel.classList.toggle('on', showLabels); };
 document.getElementById('bIn').onclick = () => { zoom = Math.max(0.3, zoom - 0.15); };
 document.getElementById('bOut').onclick = () => { zoom = Math.min(3.0, zoom + 0.2); };
@@ -3378,8 +3376,33 @@ async function openRank(game, score) {
   document.getElementById('rankMine').textContent = score != null ? '내 기록: ' + score + G.unit : '';
   document.getElementById('rankForm').style.display = score != null ? 'flex' : 'none';
   document.getElementById('rankName').value = LS.get('sobok.gbName') || ''; rankMsg.textContent = '';
+  document.getElementById('rankAdmin').style.display = GB.isAdmin && GB.mode === 'live' ? 'block' : 'none';   // 관리자에게만 보여요
   rankEl.classList.add('open'); rankRender();
 }
+// 관리자 전용: 순위표 초기화 (기록을 모두 지움, 되돌릴 수 없어요)
+async function rankWipe(games) {
+  if (!GB.isAdmin || GB.mode !== 'live') return;
+  const { fsM, db } = GB.fb; let n = 0;
+  for (const g of games) {
+    for (;;) {
+      const snap = await fsM.getDocs(fsM.query(fsM.collection(db, 'scores_' + g), fsM.limit(400)));
+      if (snap.empty) break;
+      const b = fsM.writeBatch(db); snap.docs.forEach(d => b.delete(d.ref)); await b.commit(); n += snap.size;
+    }
+  }
+  return n;
+}
+document.getElementById('rankReset').onclick = async () => {
+  const G = RANK_GAMES[RK.game];
+  if (!confirm('"' + G.name + '" 순위표 기록을 모두 지울까요?\n지운 기록은 되돌릴 수 없어요.')) return;
+  rankMsg.textContent = '지우는 중…';
+  try { const n = await rankWipe([RK.game]); rankMsg.textContent = n + '개 기록을 지웠어요.'; rankRender(); } catch (e) { rankMsg.textContent = '지우지 못했어요. (관리자 로그인을 확인해 주세요)'; }
+};
+document.getElementById('rankResetAll').onclick = async () => {
+  if (!confirm('미니게임 4개의 순위표 기록을 모두 지울까요?\n지운 기록은 되돌릴 수 없어요.')) return;
+  rankMsg.textContent = '지우는 중…';
+  try { const n = await rankWipe(Object.keys(RANK_GAMES)); rankMsg.textContent = '모든 순위표에서 ' + n + '개 기록을 지웠어요.'; rankRender(); } catch (e) { rankMsg.textContent = '지우지 못했어요. (관리자 로그인을 확인해 주세요)'; }
+};
 document.getElementById('rankClose').onclick = () => { rankEl.classList.remove('open'); if (document.activeElement) document.activeElement.blur(); };
 const rankFormSubmit = async ev => {
   if (ev) ev.preventDefault();
@@ -3495,7 +3518,7 @@ function tick() {
   const df = dispFloor();
   const up = fp ? df + 1 : df;   // 1인칭에서는 위층 바닥이 천장이 되도록 한 층 더 보여요
   F2.visible = up >= 1; F3.visible = up >= 2; F4.visible = up >= 3; F5.visible = up >= 4; F6.visible = up >= 5;
-  if (floorEl.dataset.f !== String(df)) { floorEl.dataset.f = df; floorEl.textContent = (df === 5 ? '옥상' : (df + 1) + '층') + ' · v83'; }
+  if (floorEl.dataset.f !== String(df)) { floorEl.dataset.f = df; floorEl.textContent = (df === 5 ? '옥상' : (df + 1) + '층') + ' · v86'; }
   updateAutoCam(dt, df);
   // 카메라
   const p = player.position;
@@ -3540,6 +3563,21 @@ function tick() {
   requestAnimationFrame(tick);
 }
 labels.forEach(l => { l.el.style.left = '0'; l.el.style.top = '0'; });
+// 새로고침해도 있던 자리에서 다시 시작해요 (이 기기에만 기억, 계단·엘리베이터·의자 위에서는 저장하지 않음)
+try {
+  const sv = JSON.parse(LS.get('sobok.pos') || 'null');
+  if (sv && typeof sv.x === 'number' && sv.f >= 0 && sv.f <= 5 && Date.now() - (sv.t || 0) < 7 * 864e5) {
+    curFloor = sv.f; player.position.set(sv.x, sv.f * 2.8, sv.z); player.rotation.y = sv.r || 0; yaw = sv.yaw || 0;
+    resolve(player.position); player.position.y = heightAt(player.position.x, player.position.z);
+    camPos.set(player.position.x + Math.sin(yaw) * 5, player.position.y + 2, player.position.z + Math.cos(yaw) * 5);
+    camLook.set(player.position.x, player.position.y + 0.6, player.position.z);
+  }
+} catch (e) {}
+setInterval(() => {
+  const p = player.position;
+  if (elev || seat || stairBase !== null || inStair(p.x, p.z)) return;
+  LS.set('sobok.pos', JSON.stringify({ x: +p.x.toFixed(2), z: +p.z.toFixed(2), f: curFloor, r: +player.rotation.y.toFixed(2), yaw: +yaw.toFixed(2), t: Date.now() }));
+}, 1500);
 tick();
 loadingEl.style.display = 'none';
 </script>
