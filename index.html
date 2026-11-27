@@ -144,7 +144,7 @@
 <body>
 <div id="app"></div>
 <div id="labels"></div>
-<div id="title" class="card"><b>서울청년센터 성북</b><span id="floorName">1층 · v93</span></div>
+<div id="title" class="card"><b>서울청년센터 성북</b><span id="floorName">1층 · v98</span></div>
 <div id="btns">
   <button id="bShot">📷 사진</button>
   <button id="bEnv">🌤 계절·시간</button>
@@ -373,13 +373,19 @@ function brickTexFor(w, h) {   // 벽 크기에 맞춰 벽돌이 늘어나지 �
   if (!_brickBase.clone) return _brickBase;
   const t = _brickBase.clone(); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(Math.max(0.2, w / 1.2), Math.max(0.2, h / 0.6)); t.needsUpdate = true; return t;
 }
-function brickOuter(g, m, x1, z1, x2, z2) {   // 건물 둘레(바깥) 벽이면 바깥 면에 벽돌
+function brickOuter(g, m, x1, z1, x2, z2, ends) {   // 건물 둘레(바깥) 벽이면 바깥 면에 벽돌
   const on = (a, b, v) => Math.abs(a - v) < 0.06 && Math.abs(b - v) < 0.06;
   if (!(on(x1, x2, 0) || on(x1, x2, 12.6) || on(z1, z2, 0) || on(z1, z2, 16.8)) || m.map) return;
   wallMeshes.filter(mm => mm.userData.group === g && mm.material === m).forEach(mm => {
     const pr = (mm.geometry && mm.geometry.parameters) || {}, th = mm.rotation.y;
     const out = (mm.position.x - 6.3) * Math.sin(th) + (mm.position.z - 8.4) * Math.cos(th) > 0 ? 4 : 5;
-    const arr = [m, m, m, m, m, m]; arr[out] = gmat(g, '#ffffff', { map: brickTexFor(pr.width || 1, pr.height || 1) }); mm.material = arr;
+    const arr = [m, m, m, m, m, m]; arr[out] = gmat(g, '#ffffff', { map: brickTexFor(pr.width || 1, pr.height || 1) });
+    // 건물 모서리에 닿는 벽 끝 단면은 바깥에서 보이니까 벽돌로 (흰 세로줄 방지)
+    const ca = -mm.rotation.y, hw = (pr.width || 0) / 2, isCorner = (px, pz) => (Math.abs(px) < 0.2 || Math.abs(px - 12.6) < 0.2) && (Math.abs(pz) < 0.2 || Math.abs(pz - 16.8) < 0.2);
+    const endMat = () => gmat(g, '#ffffff', { map: brickTexFor(pr.depth || 0.25, pr.height || 1) });
+    if (ends || isCorner(mm.position.x + Math.cos(ca) * hw, mm.position.z + Math.sin(ca) * hw)) arr[0] = endMat();
+    if (ends || isCorner(mm.position.x - Math.cos(ca) * hw, mm.position.z - Math.sin(ca) * hw)) arr[1] = endMat();
+    mm.material = arr;
   });
 }
 const OPENINGS = [];   // 벽에 난 문 구멍 (세로 줄이기 뒤에 원래 폭으로 되돌릴 때 씀)
@@ -417,7 +423,7 @@ function solidWall(x1, z1, x2, z2, o = {}) {
     if (y1 - y0 > 1.2) { const ym = y0 + (y1 - y0) * 0.7; sp(a, b, ym - 0.03, ym + 0.03, ft * 0.8, fr); }                    // 가로 창살
     sp(a - 0.06, b + 0.06, y0 - 0.05, y0, t + 0.14, sl);                                                                        // 창턱
   });
-  if (o.brick !== false) brickOuter(g, m, x1, z1, x2, z2);
+  if (o.brick !== false) brickOuter(g, m, x1, z1, x2, z2, o.brickEnds);
   return g;
 }
 // 유리벽: 창틀 + 유리
@@ -595,10 +601,10 @@ function tree(x, z, s = 1) {
 
 /* ---------- 벽 ---------- */
 glassWall(0, 0, 9, 0);                                         // 홀 통창 (북쪽)
-glassWall(9, 0, 15.2, 0, { doors: [[1.9, 3.35]] });            // 입구 바깥문
+glassWall(9, 0, 15.0, 0, { doors: [[1.9, 3.35]] });            // 입구 바깥문 (오른쪽 끝은 벽돌 기둥 속으로)
 glassWall(9, 0, 9, 5.5, { doors: [[1.8, 3.2]] });              // 입구 ↔ 홀 문 (창가 카운터 옆)
-solidWall(15.2, 0, 9, 5.5, { color: '#f8f6f1', t: 0.2 });      // 입구 ↔ 사무실 흰 벽
-solidWall(15.2, 0, 16, 0, { color: '#e7e2da' });
+solidWall(15.132, 0.06, 9, 5.5, { color: '#f8f6f1', t: 0.2 });  // 입구 ↔ 사무실 흰 벽 (끝을 살짝 안쪽에서 시작 → 바깥 벽돌 면을 뚫고 나오지 않게)
+solidWall(15.0, 0, 16, 0, { color: '#e7e2da', brickEnds: true });   // 입구 옆 벽돌 기둥: 흰 가벽 끝을 감싸고, 옆 단면도 벽돌
 solidWall(16, 0, 16, 19.5, { color: '#e7e2da', windows: [[0.8, 4.0, 0.9, 2.5], [4.6, 8.4, 0.9, 2.5], [9.0, 12.6, 0.9, 2.5]] });  // 사무실 창문
 [[2.4, 3.2], [6.5, 3.8], [10.8, 3.6]].forEach(([z, l]) => box(0.04, 0.75, l, '#efe6d2', 15.83, 1.75, z, { r: 0, shadow: false }));  // 롤 블라인드
 solidWall(16, 19.5, 0, 19.5, { color: '#e7e2da', windows: [[9.7, 12.1, 1.25, 2.5]] });  // 남쪽 벽 + 엘리베이터 옆 창문
@@ -2300,7 +2306,22 @@ document.getElementById('bOut').onclick = () => { zoom = Math.min(3.0, zoom + 0.
 // 마우스(또는 손가락)로 끌어서 시점 돌리기
 let yaw = 0, pitch = 0.3, drag = null;   // 3인칭: 바닥과 거의 수평한 낮은 시점
 const cv = renderer.domElement;
-cv.addEventListener('pointerdown', e => { drag = { id: e.pointerId, x: e.clientX, y: e.clientY, sx: e.clientX, sy: e.clientY }; cv.setPointerCapture(e.pointerId); });
+// 두 손가락 벌리기·오므리기로 확대·축소 (사진 확대처럼)
+const touchPts = new Map(); let pinch = null;
+const pinchDist = () => { const [a, b] = [...touchPts.values()]; return Math.hypot(a.x - b.x, a.y - b.y) || 1; };
+cv.addEventListener('pointerdown', e => {
+  touchPts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (touchPts.size === 2) { pinch = { d0: pinchDist(), z0: zoom }; drag = null; return; }   // 두 번째 손가락이 닿으면 회전 대신 확대·축소
+  if (touchPts.size > 2 || pinch) return;
+  drag = { id: e.pointerId, x: e.clientX, y: e.clientY, sx: e.clientX, sy: e.clientY }; cv.setPointerCapture(e.pointerId);
+});
+cv.addEventListener('pointermove', e => {
+  if (!touchPts.has(e.pointerId)) return;
+  touchPts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (pinch && touchPts.size >= 2) zoom = Math.min(3.0, Math.max(0.3, pinch.z0 * pinch.d0 / pinchDist()));   // 벌리면 가까이, 오므리면 멀리
+});
+const pinchEnd = e => { touchPts.delete(e.pointerId); if (touchPts.size < 2) pinch = null; };
+cv.addEventListener('pointerup', pinchEnd); cv.addEventListener('pointercancel', pinchEnd); cv.addEventListener('pointerleave', e => { if (e.pointerType !== 'touch') touchPts.delete(e.pointerId); });
 const clickRay = new THREE.Raycaster();
 function tryClickInfo(cx, cy) {
   const df = dispFloor(), list = infos.filter(it => it.floor === df).flatMap(it => it.meshes);
@@ -2635,6 +2656,13 @@ const KF = [[0, ...NIGHT], [5, ...NIGHT], [6.5, '#f3c6a6', '#ffe2c8', '#c9a988',
 const hex2 = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
 const lerpHex = (a, b, t) => '#' + hex2(a).map((v, i) => Math.round(v + (hex2(b)[i] - v) * t).toString(16).padStart(2, '0')).join('');
 const setCol = (c, hx) => { if (c && c.set) c.set(hx); };
+// 하늘색 중간 단계: 파랑↔주황을 그냥 섞으면 회색이 되어서, 사이에 어울리는 하늘색을 끼워 넣어요 (조명은 앞뒤 사이 값)
+[[5.8, '#5a4a78'], [7.1, '#f8dcc0'], [7.5, '#d4ecf5'], [17.2, '#cfe6f2'], [17.7, '#f8dcc2'], [19.0, '#7a5a86']].forEach(([h, sky]) => {
+  let i = 0; while (i < KF.length - 2 && h >= KF[i + 1][0]) i++;
+  const A = KF[i], B = KF[i + 1], t = (h - A[0]) / (B[0] - A[0] || 1);
+  const row = A.map((v, k) => k === 0 ? h : k === 1 ? sky : typeof v === 'string' ? lerpHex(v, B[k], t) : v + (B[k] - v) * t);
+  KF.splice(i + 1, 0, row);
+});
 const SEASON_LOOK = {
   spring: { grass: '#b2db8f', leaves: ['#f6c1d5', '#f9d3e2', '#f2adc7'] },   // 봄: 나무가 전부 벚꽃색
   summer: { grass: '#93c873', leaves: ['#5aa84f', '#6dba5f', '#4e9a46'] },
@@ -2643,6 +2671,9 @@ const SEASON_LOOK = {
 };
 function envState() { const d = new Date(); return { season: ENV.season || realSeason(d), hour: ENV.hour ?? (d.getHours() + d.getMinutes() / 60) }; }
 function phaseName(h) { return h < 5 || h >= 19.8 ? '밤' : h < 8 ? '아침' : h < 16.5 ? '낮' : '저녁'; }
+// 구름 색: 하늘 색표와 같은 시간에 맞춰 바뀌어요 (새벽·저녁 연보라, 아침·노을 살구빛, 밤 남색)
+const CLOUD_KF = [[0, '#3e4767'], [5, '#3e4767'], [5.8, '#a497c0'], [6.5, '#fff1e6'], [7.1, '#fff8f0'], [7.5, '#ffffff'], [17.2, '#ffffff'], [17.7, '#fff3e8'], [18.3, '#ffd9bd'], [19.0, '#b49ac0'], [19.8, '#3e4767'], [24, '#3e4767']];
+function cloudTint(h) { let i = 0; while (i < CLOUD_KF.length - 2 && h >= CLOUD_KF[i + 1][0]) i++; const A = CLOUD_KF[i], B = CLOUD_KF[i + 1]; return lerpHex(A[1], B[1], Math.max(0, Math.min(1, (h - A[0]) / (B[0] - A[0] || 1)))); }
 function applyEnv() {
   const { season, hour } = envState();
   let i = 0; while (i < KF.length - 2 && hour >= KF[i + 1][0]) i++;
@@ -2652,7 +2683,7 @@ function applyEnv() {
   setCol(hemi.color, lerpHex(A[2], B[2], t)); setCol(hemi.groundColor, lerpHex(A[3], B[3], t)); hemi.intensity = A[4] + (B[4] - A[4]) * t;
   setCol(sun.color, lerpHex(A[5], B[5], t)); sun.intensity = A[6] + (B[6] - A[6]) * t;
   renderer.toneMappingExposure = A[7] + (B[7] - A[7]) * t;
-  if (typeof CL !== 'undefined') { const nt = A[8] + (B[8] - A[8]) * t; CL.mats.forEach(m => { setCol(m.color, lerpHex('#ffffff', '#3e4767', nt)); m.opacity = 0.95 - 0.3 * nt; }); }
+  if (typeof CL !== 'undefined') { const nt = A[8] + (B[8] - A[8]) * t; const cc = cloudTint(hour); CL.mats.forEach(m => { setCol(m.color, cc); m.opacity = 0.95 - 0.3 * nt; }); }
   lampLight.intensity = glow * 0.75; lampMat.emissiveIntensity = glow * 1.6;
   const T = sun.target.position;
   if (hour >= 6 && hour <= 19) { const a = (hour - 6) / 13 * Math.PI; sun.position.set(T.x + 16 * Math.cos(a), 6 + 18 * Math.sin(a), T.z + 8); }
@@ -3577,7 +3608,7 @@ function tick() {
   const df = dispFloor();
   const up = fp ? df + 1 : df;   // 1인칭에서는 위층 바닥이 천장이 되도록 한 층 더 보여요
   F2.visible = up >= 1; F3.visible = up >= 2; F4.visible = up >= 3; F5.visible = up >= 4; F6.visible = up >= 5;
-  if (floorEl.dataset.f !== String(df)) { floorEl.dataset.f = df; floorEl.textContent = (df === 5 ? '옥상' : (df + 1) + '층') + ' · v93'; }
+  if (floorEl.dataset.f !== String(df)) { floorEl.dataset.f = df; floorEl.textContent = (df === 5 ? '옥상' : (df + 1) + '층') + ' · v98'; }
   updateAutoCam(dt, df);
   // 카메라
   const p = player.position;
